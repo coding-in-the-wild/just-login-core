@@ -11,14 +11,15 @@ is passed a secret-code generating function, which must return a unique string. 
 If no code-generating function is supplied, use this as a default:
 
     function UUID() {
-    	// 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
-    	return 'xxxxxxxxxxxx4xxxyxxxxxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    	return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
     		var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8)
     		return v.toString(16)
     	})
     }
 
-exposes:
-isAuthenticated(session id, cb) -> calls the callback with null or a contact address if authenticated
-beginAuthentication(session id, contact address) -> emits an event with a secret token and the contact address, so somebody can go send a message to that address
-authenticate(secret token, cb) -> sets the appropriate session id to be authenticated with the contact address associated with that secret token.  Calls the callback with null or the contact address depending on whether or not the login was successfull (same as isAuthenticated)
+exposes
+-------
+
+- isAuthenticated(session id, cb) -> calls the callback with null or a contact address if authenticated
+- beginAuthentication(session id, contact address) -> emits an event with a secret token and the contact address, so somebody can go send a message to that address
+- authenticate(secret token, cb) -> sets the appropriate session id to be authenticated with the contact address associated with that secret token.  Calls the callback with null or the contact address depending on whether or not the login was successfull (same as isAuthenticated)
