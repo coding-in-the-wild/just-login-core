@@ -23,3 +23,9 @@ exposes
 - isAuthenticated(session id, cb) -> calls the callback with null or a contact address if authenticated
 - beginAuthentication(session id, contact address) -> emits an event with a secret token and the contact address, so somebody can go send a message to that address
 - authenticate(secret token, cb) -> sets the appropriate session id to be authenticated with the contact address associated with that secret token.  Calls the callback with null or the contact address depending on whether or not the login was successfull (same as isAuthenticated)
+
+Things to store
+---------------
+
+- session id -> contact address (if authenticated)
+- secret code -> { contact address, session id }
