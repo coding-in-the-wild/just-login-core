@@ -20,9 +20,23 @@ If no code-generating function is supplied, use this as a default:
 exposes
 -------
 
-- isAuthenticated(session id, cb) -> calls the callback with null or a contact address if authenticated
-- beginAuthentication(session id, contact address) -> emits an event with a secret token and the contact address, so somebody can go send a message to that address
-- authenticate(secret token, cb) -> sets the appropriate session id to be authenticated with the contact address associated with that secret token.  Calls the callback with null or the contact address depending on whether or not the login was successfull (same as isAuthenticated)
+- isAuthenticated(session id, cb) -> read the session id from the database, and call the callback with null or a contact address
+
+- beginAuthentication(session id, contact address) -> emits an event with a secret token and the contact address, so somebody can go send a message to that address. Creates secret code, gets session id and contact info, emits event, writes secret code, always writes to database.
+
+- authenticate(secret token, cb(session, contact)) -> sets the appropriate session id to be authenticated with the contact address associated with that secret token.  If session id is valid (is login was successful): Call the callback with the contact address. Also write the session id to the database. If invalid (unsuccessful login): Call the callback with null (same as isAuthenticated)
+
+- unAuthenticate(session) -> delete session from database
+
+notes
+-----
+
+- levelup is created in the tests, and levelmem is passed to it
+
+- levelmem is created in the module
+
+- check out levelup-cache by tehshrike, view tests
+
 
 Things to store
 ---------------
