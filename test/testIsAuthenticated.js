@@ -2,10 +2,26 @@ var test = require('tap').test
 var JustLoginCore = require('../index.js')
 var Levelup = require('levelup')
 
-test('test for um', function(t) {
-	var justLoginCore = JustLoginCore(Levelup('', { db: require('memdown') }))
+var fakeId = "LOLThisIsAFakeSessionId"
+var fakeAddress = "example@example.com"
+
+
+test('test for isAuthenticated', function(t) {
+	var levelup = Levelup('', { db: require('memdown') })
+	var jlc = JustLoginCore(levelup)
 	
-	//isAuthenticated(session id, cb) -> calls the callback with null or a contact address if authenticated
+	t.plan(4)
 	
-	t.end()
+	jlc.isAuthenticated(fakeId, function(err, value) {
+		t.notOk(err, 'no error')
+		t.notOk(value, 'not in db')
+	})
+	
+	levelup.put(fakeId, fakeAddress) //no callback needed, because memdown is instantaneous
+	
+	jlc.isAuthenticated(fakeId, function(err, value) {
+		t.notOk(err, 'no error')
+		t.equal(value, fakeAddress, 'got back correct value')
+		t.end()
+	})
 })
