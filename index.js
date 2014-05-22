@@ -2,8 +2,8 @@ var events = require('events')
 
 module.exports = function JustLoginCore(db, tokenGen) {
 
-	function UUID() {
-		return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+	function UUID() { //'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
+		return 'xxxxxxxxxxxx4xxxyxxxxxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
 			var r = Math.random() * 16 | 0
 			var v = c == 'x' ? r : (r & 0x3 | 0x8)
 			return v.toString(16)
@@ -27,10 +27,10 @@ module.exports = function JustLoginCore(db, tokenGen) {
 	function beginAuthentication(sessionId, contactAddress) {
 		var emitter = new events.EventEmitter()
 		var token = tokenGen()
-		var storeUnderToken = {
+		var storeUnderToken = JSON.stringify({
 			sessionId: sessionId,
 			contactAddress: contactAddress
-		}
+		})
 		db.put(token, storeUnderToken, function() {
 			setTimeout(function() {
 				emitter.emit('auth', {
@@ -49,8 +49,7 @@ module.exports = function JustLoginCore(db, tokenGen) {
 			if (err && !err.notFound) { //if non-notFound error
 				cb(err)
 			} else {
-				console.log('index.js, ln52, authenticate(), ',val)
-				cb(null, val)
+				cb(null, typeof val=='string'?JSON.parse(val).contactAddress:val)
 			}
 		})
 	}
