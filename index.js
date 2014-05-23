@@ -1,4 +1,8 @@
-var events = require('events')
+var EventEmitter = require('events').EventEmitter
+
+var levelupOptions = {
+	valueEncoding: 'json'
+}
 
 module.exports = function JustLoginCore(db, tokenGen) {
 
@@ -9,9 +13,11 @@ module.exports = function JustLoginCore(db, tokenGen) {
 			return v.toString(16)
 		})
     }
-	
+
+    var emitter = Object.create(new EventEmitter())
+
 	tokenGen = tokenGen || UUID
-	
+
 	//isAuthenticated(session id, cb) -> calls the callback with null or a contact address if authenticated
 	function isAuthenticated(sessionId, cb) {
 		db.get(sessionId, function(err, val) {
@@ -22,43 +28,47 @@ module.exports = function JustLoginCore(db, tokenGen) {
 			}
 		})
 	}
-	
+
 	//beginAuthentication(session id, contact address) -> emits an event with a secret token and the contact address, so somebody can go send a message to that address
 	function beginAuthentication(sessionId, contactAddress) {
-		var emitter = new events.EventEmitter()
 		var token = tokenGen()
-		var storeUnderToken = JSON.stringify({
+		var loginRequest = {
 			sessionId: sessionId,
 			contactAddress: contactAddress
+		}
+		db.put(token, loginRequest, levelupOptions, function() {
+			emitter.emit('authentication initiated', {
+				token: token,
+				contactAddress: contactAddress
+			})
 		})
-		db.put(token, storeUnderToken, function() {
-			setTimeout(function() {
-				emitter.emit('auth', {
-					token: token,
-					contactAddress: contactAddress
-				})
-			}, 10)
-		})
-		return emitter
 	}
-	
+
 	//authenticate(secret token, cb) -> sets the appropriate session id to be authenticated with the contact address associated with that secret token.
 	//Calls the callback with null or the contact address depending on whether or not the login was successful (same as isAuthenticated)
-	function authenticate(token, cb) {
-		db.get(token, function(err, val) {
-			if (err && !err.notFound) { //if non-notFound error
+	function attemptAuthentication(token, cb) {
+		db.get(token, levelupOptions, function(err, loginRequest) {
+			if (err && err.notFound) {
+				cb(null, false)
+			} else if (err) {
 				cb(err)
 			} else {
-				cb(null, typeof val=='string'?JSON.parse(val).contactAddress:val)
+				db.put(loginRequest.sessionId, loginRequest.contactAddress, function(err) {
+					if (err) {
+						cb(err)
+					} else {
+						cb(null, loginRequest.contactAddress)
+					}
+				})
 			}
 		})
 	}
-	
-	return {
-		isAuthenticated: isAuthenticated,
-		beginAuthentication: beginAuthentication,
-		authenticate: authenticate
-	}
+
+	emitter.isAuthenticated = isAuthenticated
+	emitter.beginAuthentication = beginAuthentication
+	emitter.authenticate = attemptAuthentication
+
+	return emitter
 }
 
 /*

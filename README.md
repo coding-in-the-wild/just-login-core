@@ -43,3 +43,8 @@ Things to store
 
 - session id -> contact address (if authenticated)
 - secret code -> { contact address, session id }
+
+Usage notes
+===========
+
+This library doesn't expire anything in its levelup stores.  You'll have to wrap it up in something like level-ttl.
