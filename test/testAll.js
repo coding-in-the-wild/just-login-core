@@ -27,8 +27,6 @@ test('test for the entire just-login core', function(t) {
 
 			jlc.isAuthenticated(fakeId, function (err, val) { //Authenticated now
 				t.notOk(err, 'no error for isAuthenticated 3')
-				console.log("val.....")
-				console.log(val)
 				t.equal(val, fakeAddress, 'got address back')
 				t.end()
 			})
