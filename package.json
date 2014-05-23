@@ -1,0 +1,33 @@
+{
+  "name": "just-login-core",
+  "version": "0.0.1",
+  "main": "./index.js",
+  "author": {
+    "name": "ArtskydJ",
+    "email": "josephdykstra@gmail.com"
+  },
+  "description": "The core functions of the just-login authentication",
+  "keywords": [
+    "just-login",
+	"login",
+    "authenticate",
+	"login"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ArtskydJ/just-login-core.git"
+  },
+  "devDependencies": {
+    "tap": "~0.4.8",
+    "memdown": "~0.10.0"
+  },
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "tap ./test/*.js"
+  },
+  "dependencies": {
+    "levelup": "~0.18.3"
+  }
+}
