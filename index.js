@@ -32,12 +32,12 @@ module.exports = function JustLoginCore(db, tokenGen) {
 			contactAddress: contactAddress
 		})
 		db.put(token, storeUnderToken, function() {
-			setTimeout(function() {
+			process.nextTick(function() {
 				emitter.emit('auth', {
 					token: token,
 					contactAddress: contactAddress
 				})
-			}, 10)
+			})
 		})
 		return emitter
 	}
@@ -49,7 +49,7 @@ module.exports = function JustLoginCore(db, tokenGen) {
 			if (err && !err.notFound) { //if non-notFound error
 				cb(err)
 			} else {
-				cb(null, typeof val=='string'?JSON.parse(val).contactAddress:val)
+				cb(null, typeof val=='string'?JSON.parse(val).contactAddress : val)
 			}
 		})
 	}

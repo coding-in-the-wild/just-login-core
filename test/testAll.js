@@ -41,7 +41,4 @@ test('test for the entire just-login core', function(t) {
 			})
 		})
 	})
-	
-	//-> emits an event with a secret token and the contact address, so somebody can go send a message to that address
-	
 })
