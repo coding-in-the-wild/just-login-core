@@ -5,9 +5,9 @@ just-login-core
 - [Install](https://github.com/ArtskydJ/just-login-core#install)
 - [Require and Construct](https://github.com/ArtskydJ/just-login-core#require-and-construct)
 - [Methods](https://github.com/ArtskydJ/just-login-core#methods)
-- [jlc.isAuthenticated(sessionId, cb)](https://github.com/ArtskydJ/just-login-core#jlcisauthenticated-sessionid-cb)
-- [jlc.beginAuthentication(sessionId, contactAddress)](https://github.com/ArtskydJ/just-login-core#jlcbeginauthentication-sessionid-contactaddress)
-- [jlc.authenticate(sessionId, cb)](https://github.com/ArtskydJ/just-login-core#jlcauthenticate-sessionid-cb)
+- [jlc.isAuthenticated(sessionId, cb)](https://github.com/ArtskydJ/just-login-core#jlcisauthenticatedsessionid-cb)
+- [jlc.beginAuthentication(sessionId, contactAddress)](https://github.com/ArtskydJ/just-login-core#jlcbeginauthenticationsessionid-contactaddress)
+- [jlc.authenticate(secretToken, cb)](https://github.com/ArtskydJ/just-login-core#jlcauthenticatesessionid-cb)
 - [Specs](https://github.com/ArtskydJ/just-login-core#specs)
 
 #Information
@@ -31,22 +31,22 @@ or
 
 	var jlc = require('just-login-core')(require('level-mem')('uniqueNameHere'))
 
-Please don't do the latter, it's ugly, hard to read, and ugly.
+Please don't do the latter; it's ugly, hard to read, and ugly.
 
 
 ##Methods
 
-###jlc.isAuthenticated(session id, cb)
+###jlc.isAuthenticated(sessionId, cb)
 
 calls the callback with null or a contact address if authenticated
 
-###jlc.beginAuthentication(session id, contact address)
+###jlc.beginAuthentication(sessionId, contactAddress)
 
 Emits an event with a secret token and the contact address, so somebody can go send a message to that address
 
 (Suggestion: use the [Just-Login-Emailer](https://github.com/coding-in-the-wild/just-login-emailer) or my fork of the same [emailer](https://github.com/ArtskydJ/just-login-emailer) for this.)
 
-###jlc.authenticate(secret token, cb)
+###jlc.authenticate(secretToken, cb)
 
 Sets the appropriate session id to be authenticated with the contact address associated with that secret token.
 
@@ -62,5 +62,5 @@ If no code-generating function is supplied, use a UUID gen
 
 Stores: (in a levelup database)
 
-- session id -> contact address (if authenticated)
-- secret code -> { contact address, session id }
+	session id: contact address (if authenticated)
+	secret code: { contact address, session id }
