@@ -5,9 +5,9 @@ just-login-core
 - [Install](https://github.com/ArtskydJ/just-login-core#install)
 - [Require and Construct](https://github.com/ArtskydJ/just-login-core#require-and-construct)
 - [Methods](https://github.com/ArtskydJ/just-login-core#methods)
-- [jlc.isAuthenticated(sessionId, cb)](https://github.com/ArtskydJ/just-login-core#jlc-isauthenticated-sessionid-cb)
-- [jlc.beginAuthentication(sessionId, contactAddress)](https://github.com/ArtskydJ/just-login-core#jlc-isauthenticated-sessionid-contactaddress)
-- [jlc.authenticate(sessionId, cb)](https://github.com/ArtskydJ/just-login-core#jlc-isauthenticated-sessionid-cb)
+- [jlc.isAuthenticated(sessionId, cb)](https://github.com/ArtskydJ/just-login-core#jlcisauthenticated-sessionid-cb)
+- [jlc.beginAuthentication(sessionId, contactAddress)](https://github.com/ArtskydJ/just-login-core#jlcbeginauthentication-sessionid-contactaddress)
+- [jlc.authenticate(sessionId, cb)](https://github.com/ArtskydJ/just-login-core#jlcauthenticate-sessionid-cb)
 - [Specs](https://github.com/ArtskydJ/just-login-core#specs)
 
 #Information
