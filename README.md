@@ -16,9 +16,12 @@ Handle sessions and secrets and user ids, oh my!
 
 This module holds the core functionality of the just login module.
 
-The JlCore constructor takes a levelup database.
+The constructor takes a levelup database.
 
 ##Install
+
+Install with npm:
+
 	npm install just-login-core
 	
 ##Require and Construct
