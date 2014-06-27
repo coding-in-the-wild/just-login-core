@@ -7,7 +7,7 @@ just-login-core
 - [Methods](https://github.com/ArtskydJ/just-login-core#methods)
 - [jlc.isAuthenticated(sessionId, cb)](https://github.com/ArtskydJ/just-login-core#jlcisauthenticatedsessionid-cb)
 - [jlc.beginAuthentication(sessionId, contactAddress)](https://github.com/ArtskydJ/just-login-core#jlcbeginauthenticationsessionid-contactaddress)
-- [jlc.authenticate(secretToken, cb)](https://github.com/ArtskydJ/just-login-core#jlcauthenticatesessionid-cb)
+- [jlc.authenticate(secretToken, cb)](https://github.com/ArtskydJ/just-login-core#jlcauthenticatesecrettoken-cb)
 - [Specs](https://github.com/ArtskydJ/just-login-core#specs)
 
 #Information
