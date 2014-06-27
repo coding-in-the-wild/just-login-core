@@ -10,7 +10,7 @@ test('test for beginAuthentication', function(t) {
 	var jlc = JustLoginCore(levelup)
 	
 	t.plan(2)
-	jlc.beginAuthentication(fakeId, fakeAddress).on('auth', function(obj) {
+	jlc.beginAuthentication(fakeId, fakeAddress).on('authentication initiated', function(obj) {
 		t.ok(obj.token, "Token exists")
 		t.equal(obj.contactAddress, fakeAddress, "Adresses match")
 		t.end()

@@ -15,7 +15,7 @@ test('test for the entire just-login core', function(t) {
 		t.notOk(err, 'no error for isAuthenticated 1')
 		t.notOk(val, 'no value came back')
 	})
-	jlc.beginAuthentication(fakeId, fakeAddress).on('auth', function(obj) {
+	jlc.beginAuthentication(fakeId, fakeAddress).on('authentication initiated', function(obj) {
 		t.ok(obj.token, "Token exists")
 		t.equal(obj.contactAddress, fakeAddress, "Adresses match")
 		

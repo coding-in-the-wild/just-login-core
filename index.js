@@ -33,7 +33,7 @@ module.exports = function JustLoginCore(db, tokenGen) {
 		})
 		db.put(token, storeUnderToken, function() {
 			process.nextTick(function() {
-				emitter.emit('auth', {
+				emitter.emit('authentication initiated', {
 					token: token,
 					contactAddress: contactAddress
 				})
