@@ -41,11 +41,31 @@ Please don't do the latter; it's ugly, hard to read, and ugly.
 
 ###jlc.isAuthenticated(sessionId, cb)
 
-calls the callback with null or a contact address if authenticated
+Calls the callback with null or a contact address if authenticated
+
+Example of an authenticated user (a user who was logged in previously)
+
+	jlc.isAuthenticated("previouslyLoggedInSessionId", function(err, contactAddress) {
+		if (!err)
+			console.log(contactAddress) //logs: "fake@example.com"
+	})
+
+Example of an unauthenticated user (a user who was NOT logged in previously)
+
+	jlc.isAuthenticated("notPreviouslyLoggedInSessionId", function(err, contactAddress) {
+		if (!err)
+			console.log(contactAddress) //logs: ""
+	})
 
 ###jlc.beginAuthentication(sessionId, contactAddress)
 
-Emits an event with a secret token and the contact address, so somebody can go send a message to that address
+Emits an event with a secret token and the contact address, so somebody can go send a message to that address.
+
+	var emitAuth = jlc.beginAuthentication("wantToLogInSessionId", "fake@example.com")
+	emitAuth.on('authentication initiated', function(authInit) {
+		console.log(authInit.token)     //logs the secret token
+		console.log(authInit.sessionId) //logs the session id
+	})
 
 (Suggestion: use the [Just-Login-Emailer](https://github.com/coding-in-the-wild/just-login-emailer) or my fork of the same [emailer](https://github.com/ArtskydJ/just-login-emailer) for this.)
 
@@ -54,6 +74,20 @@ Emits an event with a secret token and the contact address, so somebody can go s
 Sets the appropriate session id to be authenticated with the contact address associated with that secret token.
 
 Calls the callback with null or the contact address depending on whether or not the login was successfull (same as isAuthenticated)
+
+If the token is invalid:
+
+	jlc.authenticate("tokenFromEmail", function(err, contactAddress) {
+		if (!err)
+			console.log(contactAddress) //logs: ""
+	})
+
+If the token is valid:
+
+	jlc.authenticate("tokenFromEmail", function(err, contactAddress) {
+		if (!err)
+			console.log(contactAddress) //logs: "fake@example.com"
+	})
 
 
 ##Specs
