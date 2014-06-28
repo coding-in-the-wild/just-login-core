@@ -1,14 +1,15 @@
 just-login-core
 ===============
 
-- [Information](https://github.com/ArtskydJ/just-login-core#information)
-- [Install](https://github.com/ArtskydJ/just-login-core#install)
-- [Require and Construct](https://github.com/ArtskydJ/just-login-core#require-and-construct)
-- [Methods](https://github.com/ArtskydJ/just-login-core#methods)
-- [jlc.isAuthenticated(sessionId, cb)](https://github.com/ArtskydJ/just-login-core#jlcisauthenticatedsessionid-cb)
-- [jlc.beginAuthentication(sessionId, contactAddress)](https://github.com/ArtskydJ/just-login-core#jlcbeginauthenticationsessionid-contactaddress)
-- [jlc.authenticate(secretToken, cb)](https://github.com/ArtskydJ/just-login-core#jlcauthenticatesecrettoken-cb)
-- [Specs](https://github.com/ArtskydJ/just-login-core#specs)
+- [Information](#information)
+- [Install](#install)
+- [Require and Construct](#require-and-construct)
+- [Methods](#methods)
+- [jlc.isAuthenticated(sessionId, cb)](#jlcisauthenticatedsessionid-cb)
+- [jlc.beginAuthentication(sessionId, contactAddress)](#jlcbeginauthenticationsessionid-contactaddress)
+- [jlc.authenticate(secretToken, cb)](#jlcauthenticatesecrettoken-cb)
+- [jlc.unauthenticate(sessionId, secretToken, cb)](#jlcunauthenticatesessionid-secrettoken-cb)
+- [Specs](#specs)
 
 #Information
 
@@ -87,6 +88,32 @@ If the token is valid:
 	jlc.authenticate("tokenFromEmail", function(err, contactAddress) {
 		if (!err)
 			console.log(contactAddress) //logs: "fake@example.com"
+	})
+
+###jlc.unauthenticate(sessionId, secretToken, cb)
+
+Sets the appropriate session id to be unauthenticated.
+
+Calls the callback with an error if one occurs. Note that if no callback is given, the error will be thrown.
+
+If the token is valid:
+
+	jlc.unauthenticate("thisIsAValidToken", function(err, contactAddress) {
+		if (err)
+			console.log("error")
+		else
+			console.log("you have been logged out") //this should happen
+	})
+
+If the token is invalid:
+
+	jlc.unauthenticate("thisIsAnInvalidToken", function(err) {
+		if (err && err.invalidToken)
+			console.log("invalid token")
+		else if (err)
+			console.log("error:", err.message)
+		else
+			console.log("you have been logged out")
 	})
 
 

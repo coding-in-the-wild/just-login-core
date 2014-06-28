@@ -16,6 +16,7 @@ test('test for authenticate', function(t) {
 	t.plan(7)
 	
 	jlc.authenticate(fakeSecretToken, function(err, value) {
+		console.log('error message', err.message)
 		t.notOk(err, 'no error')
 		t.notOk(value, 'nothing returned')
 	})

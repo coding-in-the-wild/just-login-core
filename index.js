@@ -45,26 +45,53 @@ module.exports = function JustLoginCore(db, tokenGen) {
 	//authenticate(secret token, cb) -> sets the appropriate session id to be authenticated with the contact address associated with that secret token.
 	//Calls the callback with null or the contact address depending on whether or not the login was successful (same as isAuthenticated)
 	function authenticate(token, cb) {
-		db.get(token, function(err, val) {
-			if (err && !err.notFound) { //if non-notFound error
+		db.get(token, function(err, val) { //val = { contact address, session id }
+			if (err && !err.notFound) { //if error (not including the notFound error)
 				cb(err)
 			} else {
-				cb(null, typeof val=='string'?JSON.parse(val).contactAddress : val)
+				if (typeof val=='string')
+					val = JSON.parse(val)
+
+				if (typeof val=='object' && val.sessionId && val.contactAddress) {
+					db.put(val.sessionId, val.contactAddress, function(err2) {
+						if (err2)
+							cb(err2)
+						else
+							cb(null, val.contactAddress)
+					})
+				} else {
+					var temp = new Error("invalid value returned from token")
+					temp.invalidToken = true
+					cb(temp)
+				}
 			}
 		})
 	}
 	
+	//unauthenticate(session id, token, cb) -> deletes the token key and then the sessionid key from the database
+	function unauthenticate(sessionId, token, cb) {
+		db.del(token, function(err) {
+			if (!err)
+				db.del(sessionId, cb)
+			else if (cb)
+				cb(err)
+			else
+				throw err
+				
+		})
+	}
+
 	return {
 		isAuthenticated: isAuthenticated,
 		beginAuthentication: beginAuthentication,
-		authenticate: authenticate
+		authenticate: authenticate,
+		unauthenticate: unauthenticate
 	}
 }
 
 /*
 Things to store
 ---------------
-
 - session id -> contact address (if authenticated)
-- secret code -> { contact address, session id }
+- token -> { contact address, session id }
 */
