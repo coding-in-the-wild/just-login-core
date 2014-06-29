@@ -8,7 +8,7 @@ just-login-core
 - [jlc.isAuthenticated(sessionId, cb)](#jlcisauthenticatedsessionid-cb)
 - [jlc.beginAuthentication(sessionId, contactAddress)](#jlcbeginauthenticationsessionid-contactaddress)
 - [jlc.authenticate(secretToken, cb)](#jlcauthenticatesecrettoken-cb)
-- [jlc.unauthenticate(sessionId, secretToken, cb)](#jlcunauthenticatesessionid-secrettoken-cb)
+- [jlc.unauthenticate(sessionId, cb)](#jlcunauthenticatesessionid-secrettoken-cb)
 - [Specs](#specs)
 
 #Information
@@ -96,19 +96,21 @@ Sets the appropriate session id to be unauthenticated.
 
 Calls the callback with an error if one occurs. Note that if no callback is given, the error will be thrown.
 
-If the token is valid:
+If the token is valid: (i.e. logged in)
 
 	jlc.unauthenticate("thisIsAValidToken", function(err, contactAddress) {
-		if (err)
-			console.log("error")
+		if (err && err.invalidToken)
+			console.log("invalid token")
+		else if (err)
+			console.log("error:", err.message)
 		else
-			console.log("you have been logged out") //this should happen
+			console.log("you have been logged out") //this is expected for valid tokens
 	})
 
 If the token is invalid:
 
 	jlc.unauthenticate("thisIsAnInvalidToken", function(err) {
-		if (err && err.invalidToken)
+		if (err && err.invalidToken) //this is expected for invalid tokens
 			console.log("invalid token")
 		else if (err)
 			console.log("error:", err.message)
@@ -122,7 +124,7 @@ If the token is invalid:
 The constructor is passed a level up database.
 It can also be passed a secret-code generating function, which must return a unique string; it will use the built in function if not supplied
 
-If no code-generating function is supplied, use a UUID gen
+If no code-generating function is supplied, use a UUID generator for the token
 
 Stores: (in a levelup database)
 
