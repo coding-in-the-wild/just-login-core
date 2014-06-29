@@ -13,11 +13,11 @@ test('test for authenticate', function(t) {
 	//authenticate(secret token, cb) -> sets the appropriate session id to be authenticated with the contact address associated with that secret token.
 	//Calls the callback with null or the contact address depending on whether or not the login was successful (same as isAuthenticated)
 
-	t.plan(7)
+	t.plan(8)
 	
 	jlc.authenticate(fakeSecretToken, function(err, value) {
-		console.log('error message', err.message)
-		t.notOk(err, 'no error')
+		t.ok(err, 'an error')
+		t.ok(err.invalidToken, 'correct error')
 		t.notOk(value, 'nothing returned')
 	})
 	

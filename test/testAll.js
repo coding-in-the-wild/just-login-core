@@ -38,7 +38,7 @@ test('test for the entire just-login core', function (t) {
 				console.log(val)
 				t.equal(val, fakeAddress, 'got address back')
 
-				jlc.unauthenticate(fakeId, obj.token, function (err) {
+				jlc.unauthenticate(fakeId, function (err) {
 					t.notOk(err)
 
 					jlc.isAuthenticated(fakeId, function (err, val) { //Not authenticated yet
@@ -47,7 +47,6 @@ test('test for the entire just-login core', function (t) {
 						t.end()
 					})
 				})
-
 			})
 		})
 	})
