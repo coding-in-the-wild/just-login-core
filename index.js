@@ -1,4 +1,12 @@
 var events = require('events')
+var dbSessionIdOpts = {
+	keyEncoding: 'utf8',
+	valueEncoding: 'utf8'
+}
+var dbTokenOpts = {
+	keyEncoding: 'utf8',
+	valueEncoding: 'json'
+}
 
 module.exports = function JustLoginCore(db, tokenGen) {
 
@@ -27,11 +35,11 @@ module.exports = function JustLoginCore(db, tokenGen) {
 	function beginAuthentication(sessionId, contactAddress) {
 		var emitter = new events.EventEmitter()
 		var token = tokenGen()
-		var storeUnderToken = JSON.stringify({
+		var storeUnderToken = {
 			sessionId: sessionId,
 			contactAddress: contactAddress
-		})
-		db.put(token, storeUnderToken, function() {
+		}
+		db.put(token, storeUnderToken, dbTokenOpts, function() {
 			process.nextTick(function() {
 				emitter.emit('authentication initiated', {
 					token: token,
@@ -45,40 +53,27 @@ module.exports = function JustLoginCore(db, tokenGen) {
 	//authenticate(secret token, cb) -> sets the appropriate session id to be authenticated with the contact address associated with that secret token.
 	//Calls the callback with null or the contact address depending on whether or not the login was successful (same as isAuthenticated)
 	function authenticate(token, cb) {
-		db.get(token, function(err, val) { //val = { contact address, session id }
+		db.get(token, dbTokenOpts, function(err, val) { //val = { contact address, session id }
 			if (err && !err.notFound) { //if error (not including the notFound error)
 				cb(err)
-			} else {
-				if (typeof val=='string')
-					val = JSON.parse(val)
-
-				if (typeof val=='object' && val.sessionId && val.contactAddress) {
-					db.put(val.sessionId, val.contactAddress, function(err2) {
-						if (err2)
-							cb(err2)
-						else
-							cb(null, val.contactAddress)
-					})
-				} else {
-					var temp = new Error("invalid value returned from token")
-					temp.invalidToken = true
-					cb(temp)
-				}
+			} else if ((err && err.notFound) || !val) {
+				var temp = new Error("invalid value returned from token")
+				temp.invalidToken = true
+				cb(temp)
+			} else if (val && val.sessionId && val.contactAddress) {
+				db.put(val.sessionId, val.contactAddress, dbSessionIdOpts, function(err2) {
+					if (err2)
+						cb(err2)
+					else
+						cb(null, val.contactAddress)
+				})
 			}
 		})
 	}
 	
-	//unauthenticate(session id, token, cb) -> deletes the token key and then the sessionid key from the database
-	function unauthenticate(sessionId, token, cb) {
-		db.del(token, function(err) {
-			if (!err)
-				db.del(sessionId, cb)
-			else if (cb)
-				cb(err)
-			else
-				throw err
-				
-		})
+	//unauthenticate(session id, cb) -> deletes the token key and then the sessionid key from the database
+	function unauthenticate(sessionId, cb) {
+		db.del(sessionId, cb)
 	}
 
 	return {
