@@ -21,7 +21,7 @@ module.exports = function JustLoginCore(db, tokenGen) {
 	tokenGen = tokenGen || UUID
 	
 	//isAuthenticated(session id, cb) -> calls the callback with null or a contact address if authenticated
-	function isAuthenticated(sessionId, cb) {
+	function isAuthenticated(sessionId, cb) { //cb(err, addr)
 		db.get(sessionId, function(err, val) {
 			if (err && !err.notFound) { //if non-notFound error
 				cb(err)
@@ -52,7 +52,7 @@ module.exports = function JustLoginCore(db, tokenGen) {
 	
 	//authenticate(secret token, cb) -> sets the appropriate session id to be authenticated with the contact address associated with that secret token.
 	//Calls the callback with null or the contact address depending on whether or not the login was successful (same as isAuthenticated)
-	function authenticate(token, cb) {
+	function authenticate(token, cb) { //cb(err, addr)
 		db.get(token, dbTokenOpts, function(err, val) { //val = { contact address, session id }
 			if (err && !err.notFound) { //if error (not including the notFound error)
 				cb(err)
