@@ -117,7 +117,7 @@ If the token is invalid:
 
 #Events
 
-- `authentication initiated`
+`authentication initiated` is emitted when beginAuthentication is called. (Which should be when the user clicks the "login" button.)
 
 	jlc.on('authentication initiated', function (obj) {
 		console.log(object.token)
