@@ -1,17 +1,16 @@
 {
   "name": "just-login-core",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "main": "./index.js",
   "author": {
     "name": "ArtskydJ",
     "email": "josephdykstra@gmail.com"
   },
-  "description": "The core functions of the just-login authentication",
+  "description": "Handles the authentication at the database level for other just login modules",
   "keywords": [
-    "just-login",
+    "just login",
 	"login",
-    "authenticate",
-	"login"
+    "authentication"
   ],
   "repository": {
     "type": "git",
