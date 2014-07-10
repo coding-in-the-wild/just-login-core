@@ -10,19 +10,19 @@ test('test for isAuthenticated', function(t) {
 	var levelup = Levelup('', { db: require('memdown') })
 	var jlc = JustLoginCore(levelup)
 	
-	t.plan(5)
+	t.plan(6)
 	
 	jlc.isAuthenticated(fakeId, function(err, value) {
 		t.notOk(err, 'no error')
 		t.notOk(value, 'not in db')
-	})
-	
-	levelup.put(fakeId, fakeAddress) //no callback needed, because memdown is instantaneous
-	
-	jlc.isAuthenticated(fakeId, function(err, value) {
-		t.notOk(err, 'no error')
-		t.ok(value, 'got a value')
-		t.equal(value, fakeAddress, 'got back correct value')
-		t.end()
+		levelup.put(fakeId, fakeAddress, function (err) {
+			t.notOk(err, "no error")
+			jlc.isAuthenticated(fakeId, function(err, value) {
+				t.notOk(err, 'no error')
+				t.ok(value, 'got a value')
+				t.equal(value, fakeAddress, 'got back correct value')
+				t.end()
+			})
+		})
 	})
 })

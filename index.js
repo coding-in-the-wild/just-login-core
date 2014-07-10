@@ -25,11 +25,13 @@ module.exports = function JustLoginCore(db, tokenGen) {
 	//isAuthenticated(session id, cb) -> calls the callback with null or a contact address if authenticated
 	function isAuthenticated(sessionId, cb) { //cb(err, addr)
 		db.get(sessionId, dbSessionIdOpts, function(err, val) {
-			if (err && !err.notFound) { //if non-notFound error
+			if (err && !err.notFound) { //if bad error
 				err.get = true
 				err.isAuth = true
 				cb(err)
-			} else {
+			} else if (err) { //if notFound error
+				cb(null, null)
+			} else { //if no error
 				cb(null, val)
 			}
 		})
