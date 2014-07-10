@@ -3,13 +3,12 @@ just-login-core
 
 - [Information](#information)
 - [Install](#install)
-- [Require and Construct](#require-and-construct)
-- [Methods](#methods)
+- [Jlc(db[, tokenGenerator])](#jlcdb-tokengenerator)
 - [jlc.isAuthenticated(sessionId, cb)](#jlcisauthenticatedsessionid-cb)
 - [jlc.beginAuthentication(sessionId, contactAddress)](#jlcbeginauthenticationsessionid-contactaddress)
 - [jlc.authenticate(secretToken, cb)](#jlcauthenticatesecrettoken-cb)
 - [jlc.unauthenticate(sessionId, cb)](#jlcunauthenticatesessionid-secrettoken-cb)
-- [Specs](#specs)
+- [Events](#events)
 
 #Information
 
@@ -17,7 +16,6 @@ Handle sessions and secrets and user ids, oh my!
 
 This module holds the core functionality of the just login module.
 
-The constructor takes a levelup database.
 
 ##Install
 
@@ -25,7 +23,13 @@ Install with npm:
 
 	npm install just-login-core
 	
-##Require and Construct
+##Jlc(db[, tokenGenerator])
+
+The module is a constructor which takes a levelup database. The constructed object is an event emitter.
+It can also be passed a secret-code generating function, which must return a unique string; it will use the built in function if not supplied
+
+If no code-generating function is supplied, use a UUID generator for the token
+
 	var Jlc = require('just-login-core')
 	var level = require('level-mem')
 	var db = level('uniqueNameHere')
@@ -36,9 +40,6 @@ or
 	var jlc = require('just-login-core')(require('level-mem')('uniqueNameHere'))
 
 Please don't do the latter; it's ugly, hard to read, and ugly.
-
-
-##Methods
 
 ###jlc.isAuthenticated(sessionId, cb)
 
@@ -62,13 +63,11 @@ Example of an unauthenticated user (a user who was NOT logged in previously)
 
 Emits an event with a secret token and the contact address, so somebody can go send a message to that address.
 
-	var emitAuth = jlc.beginAuthentication("wantToLogInSessionId", "fake@example.com")
-	emitAuth.on('authentication initiated', function(authInit) {
+	jlc.beginAuthentication("wantToLogInSessionId", "fake@example.com")
+	jlc.on('authentication initiated', function(authInit) {
 		console.log(authInit.token)     //logs the secret token
 		console.log(authInit.sessionId) //logs the session id
 	})
-
-(Suggestion: use the [Just-Login-Emailer](https://github.com/coding-in-the-wild/just-login-emailer) or my fork of the same [emailer](https://github.com/ArtskydJ/just-login-emailer) for this.)
 
 ###jlc.authenticate(secretToken, cb)
 
@@ -118,15 +117,13 @@ If the token is invalid:
 			console.log("you have been logged out")
 	})
 
+#Events
 
-##Specs
+- `authentication initiated`
 
-The constructor is passed a level up database.
-It can also be passed a secret-code generating function, which must return a unique string; it will use the built in function if not supplied
+	jlc.on('authentication initiated', function (obj) {
+		console.log(object.token)
+		console.log(object.contactAddress)
+	})
 
-If no code-generating function is supplied, use a UUID generator for the token
-
-Stores: (in a levelup database)
-
-	session id: contact address (if authenticated)
-	secret code: { contact address, session id }
+(Suggestion: use the [Just-Login-Emailer](https://github.com/coding-in-the-wild/just-login-emailer) or my fork of the same [emailer](https://github.com/ArtskydJ/just-login-emailer) for this.)
