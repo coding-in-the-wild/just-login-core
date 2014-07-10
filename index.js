@@ -24,7 +24,7 @@ module.exports = function JustLoginCore(db, tokenGen) {
 	
 	//isAuthenticated(session id, cb) -> calls the callback with null or a contact address if authenticated
 	function isAuthenticated(sessionId, cb) { //cb(err, addr)
-		db.get(sessionId, function(err, val) {
+		db.get(sessionId, dbSessionIdOpts, function(err, val) {
 			if (err && !err.notFound) { //if non-notFound error
 				err.get = true
 				err.isAuth = true
@@ -82,7 +82,7 @@ module.exports = function JustLoginCore(db, tokenGen) {
 	
 	//unauthenticate(session id, cb) -> deletes the token key and then the sessionid key from the database
 	function unauthenticate(sessionId, cb) {
-		db.del(sessionId, cb)
+		db.del(sessionId, dbSessionIdOpts, cb)
 	}
 
 	emitter.isAuthenticated = isAuthenticated
