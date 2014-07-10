@@ -28,8 +28,9 @@ module.exports = function JustLoginCore(db, tokenGen) {
 			if (err && !err.notFound) { //if bad error
 				err.get = true
 				err.isAuth = true
+				err.ioe = err instanceof Error
 				cb(err)
-			} else if (err) { //if notFound error
+			} else if (err && err.notFound) { //if notFound error
 				cb(null, null)
 			} else { //if no error
 				cb(null, val)
@@ -62,17 +63,20 @@ module.exports = function JustLoginCore(db, tokenGen) {
 			if (err && !err.notFound) { //if error (not including the notFound error)
 				err.get = true
 				err.auth = true
+				err.ioe = err instanceof Error
 				cb(err)
 			} else if ((err && err.notFound) || !val) {
 				var temp = new Error("invalid value returned from token")
 				temp.invalidToken = true
 				temp.auth = true
+				temp.ioe = err instanceof Error
 				cb(temp)
 			} else if (val && val.sessionId && val.contactAddress) {
 				db.put(val.sessionId, val.contactAddress, dbSessionIdOpts, function(err2) {
 					if (err2) {
 						err2.put = true
 						err2.auth = true
+						err2.ioe = err instanceof Error
 						cb(err2)
 					} else {
 						cb(null, val.contactAddress)
