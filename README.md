@@ -1,7 +1,7 @@
 just-login-core
 ===============
 
-This module handles the authentication at the database level for the just login suite.
+This module handles the authentication at the database level for other just login modules.
 
 - [Information](#information)
 - [Install](#install)

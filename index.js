@@ -26,6 +26,8 @@ module.exports = function JustLoginCore(db, tokenGen) {
 	function isAuthenticated(sessionId, cb) { //cb(err, addr)
 		db.get(sessionId, function(err, val) {
 			if (err && !err.notFound) { //if non-notFound error
+				err.get = true
+				err.isAuth = true
 				cb(err)
 			} else {
 				cb(null, val)
@@ -40,7 +42,8 @@ module.exports = function JustLoginCore(db, tokenGen) {
 			sessionId: sessionId,
 			contactAddress: contactAddress
 		}
-		db.put(token, storeUnderToken, dbTokenOpts, function() {
+		db.put(token, storeUnderToken, dbTokenOpts, function(err) {
+			if (err) throw err
 			process.nextTick(function() {
 				emitter.emit('authentication initiated', {
 					token: token,
@@ -55,17 +58,23 @@ module.exports = function JustLoginCore(db, tokenGen) {
 	function authenticate(token, cb) { //cb(err, addr)
 		db.get(token, dbTokenOpts, function(err, val) { //val = { contact address, session id }
 			if (err && !err.notFound) { //if error (not including the notFound error)
+				err.get = true
+				err.auth = true
 				cb(err)
 			} else if ((err && err.notFound) || !val) {
 				var temp = new Error("invalid value returned from token")
 				temp.invalidToken = true
+				temp.auth = true
 				cb(temp)
 			} else if (val && val.sessionId && val.contactAddress) {
 				db.put(val.sessionId, val.contactAddress, dbSessionIdOpts, function(err2) {
-					if (err2)
+					if (err2) {
+						err2.put = true
+						err2.auth = true
 						cb(err2)
-					else
+					} else {
 						cb(null, val.contactAddress)
+					}
 				})
 			}
 		})
