@@ -25,10 +25,13 @@ Install with npm:
 	
 ##Jlc(db[, tokenGenerator])
 
-The module is a constructor which takes a levelup database. The constructed object is an event emitter.
-It can also be passed a secret-code generating function, which must return a unique string; it will use the built in function if not supplied
+`Jlc()` is a constructor with 2 arguments, `db`, and `tokenGenerator` (optional). 
 
-If no code-generating function is supplied, use a UUID generator for the token
+`db` is passed a levelup database.
+
+`tokenGenerator` can be passed token generating function, which must return a unique string. Defaults to a UUID generator.
+
+The constructed object is an event emitter. (See [Events](#events).)
 
 	var Jlc = require('just-login-core')
 	var level = require('level-mem')
