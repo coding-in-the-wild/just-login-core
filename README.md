@@ -124,4 +124,4 @@ If the token is invalid:
 		console.log(object.contactAddress)
 	})
 
-(Suggestion: use the [Just-Login-Emailer](https://github.com/coding-in-the-wild/just-login-emailer) or my fork of the same [emailer](https://github.com/ArtskydJ/just-login-emailer) for this.)
+(Suggestion: use the official [Just-Login-Emailer](https://github.com/coding-in-the-wild/just-login-emailer) or my (more updated?) fork of the [Just-Login-Emailer](https://github.com/ArtskydJ/just-login-emailer) for this.)
