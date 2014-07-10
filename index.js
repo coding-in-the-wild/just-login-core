@@ -1,4 +1,4 @@
-var events = require('events')
+var EventEmitter = require('events').EventEmitter
 var dbSessionIdOpts = {
 	keyEncoding: 'utf8',
 	valueEncoding: 'utf8'
@@ -17,6 +17,8 @@ module.exports = function JustLoginCore(db, tokenGen) {
 			return v.toString(16)
 		})
     }
+
+    var emitter = Object.create(new EventEmitter())
 	
 	tokenGen = tokenGen || UUID
 	
@@ -33,7 +35,6 @@ module.exports = function JustLoginCore(db, tokenGen) {
 	
 	//beginAuthentication(session id, contact address) -> emits an event with a secret token and the contact address, so somebody can go send a message to that address
 	function beginAuthentication(sessionId, contactAddress) {
-		var emitter = new events.EventEmitter()
 		var token = tokenGen()
 		var storeUnderToken = {
 			sessionId: sessionId,
@@ -47,7 +48,6 @@ module.exports = function JustLoginCore(db, tokenGen) {
 				})
 			})
 		})
-		return emitter
 	}
 	
 	//authenticate(secret token, cb) -> sets the appropriate session id to be authenticated with the contact address associated with that secret token.
@@ -76,12 +76,12 @@ module.exports = function JustLoginCore(db, tokenGen) {
 		db.del(sessionId, cb)
 	}
 
-	return {
-		isAuthenticated: isAuthenticated,
-		beginAuthentication: beginAuthentication,
-		authenticate: authenticate,
-		unauthenticate: unauthenticate
-	}
+	emitter.isAuthenticated = isAuthenticated
+	emitter.beginAuthentication = beginAuthentication
+	emitter.authenticate = authenticate
+	emitter.unauthenticate = unauthenticate
+
+	return emitter
 }
 
 /*
