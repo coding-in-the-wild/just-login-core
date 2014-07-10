@@ -1,6 +1,8 @@
 just-login-core
 ===============
 
+This module handles the authentication at the database level for the just login suite.
+
 - [Information](#information)
 - [Install](#install)
 - [Jlc(db[, tokenGenerator])](#jlcdb-tokengenerator)
@@ -10,20 +12,13 @@ just-login-core
 - [jlc.unauthenticate(sessionId, cb)](#jlcunauthenticatesessionid-secrettoken-cb)
 - [Events](#events)
 
-#Information
-
-Handle sessions and secrets and user ids, oh my!
-
-This module holds the core functionality of the just login module.
-
-
-##Install
+#Install
 
 Install with npm:
 
 	npm install just-login-core
 	
-##Jlc(db[, tokenGenerator])
+#Jlc(db[, tokenGenerator])
 
 `Jlc()` is a constructor with 2 arguments, `db`, and `tokenGenerator` (optional). 
 
@@ -44,7 +39,7 @@ or
 
 Please don't do the latter; it's ugly, hard to read, and ugly.
 
-###jlc.isAuthenticated(sessionId, cb)
+#jlc.isAuthenticated(sessionId, cb)
 
 Calls the callback with null or a contact address if authenticated
 
@@ -62,7 +57,7 @@ Example of an unauthenticated user (a user who was NOT logged in previously)
 			console.log(contactAddress) //logs: ""
 	})
 
-###jlc.beginAuthentication(sessionId, contactAddress)
+#jlc.beginAuthentication(sessionId, contactAddress)
 
 Emits an event with a secret token and the contact address, so somebody can go send a message to that address.
 
@@ -72,7 +67,7 @@ Emits an event with a secret token and the contact address, so somebody can go s
 		console.log(authInit.sessionId) //logs the session id
 	})
 
-###jlc.authenticate(secretToken, cb)
+#jlc.authenticate(secretToken, cb)
 
 Sets the appropriate session id to be authenticated with the contact address associated with that secret token.
 
@@ -92,7 +87,7 @@ If the token is valid:
 			console.log(contactAddress) //logs: "fake@example.com"
 	})
 
-###jlc.unauthenticate(sessionId, secretToken, cb)
+#jlc.unauthenticate(sessionId, secretToken, cb)
 
 Sets the appropriate session id to be unauthenticated.
 
