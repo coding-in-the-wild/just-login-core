@@ -9,7 +9,7 @@
   "description": "Handles the authentication at the database level for other just login modules",
   "keywords": [
     "just login",
-	"login",
+    "login",
     "authentication"
   ],
   "repository": {
@@ -17,8 +17,9 @@
     "url": "https://github.com/ArtskydJ/just-login-core.git"
   },
   "devDependencies": {
-    "tap": "~0.4.8",
-    "memdown": "~0.10.0"
+    "tap": "^0.4.8",
+    "level-mem": "^0.18.0",
+    "levelup": "^0.18.5"
   },
   "directories": {
     "test": "test"
@@ -26,7 +27,5 @@
   "scripts": {
     "test": "tap ./test/*.js"
   },
-  "dependencies": {
-    "levelup": "~0.18.3"
-  }
+  "dependencies": {}
 }

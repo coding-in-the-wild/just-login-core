@@ -1,12 +1,12 @@
 var test = require('tap').test
 var JustLoginCore = require('../index.js')
-var Levelup = require('levelup')
+var Levelup = require('level-mem')
 
 var fakeId = "LOLThisIsAFakeSessionId"
 var fakeAddress = "example@example.com"
 
 test('test for the entire just-login core', function (t) {
-	var levelup = Levelup('', { db: require('memdown') })
+	var levelup = Levelup('newThang')
 	var jlc = JustLoginCore(levelup)
 	
 	t.plan(14)
