@@ -23,15 +23,12 @@ Require:
 	
 ##Jlc(db[, tokenGenerator])
 
-`Jlc()` is a constructor with 2 arguments, `db`, and `tokenGenerator` (optional). 
+- `db` is expecting a levelup database.
+- `tokenGenerator` is expecting a function that returns an unique string each time it is called. This is used for token generation. Defaults to a UUID generator.
 
-`db` is expecting a levelup database.
+`Jlc()` constructs an object that is an event emitter, (see [Events](#events)) and has the following methods:
 
-`tokenGenerator` is expecting a function that returns an unique string each time it is called. This is used for token generation. Defaults to a UUID generator.
-
-The constructed object is an event emitter, (see [Events](#events),) and has the following methods:
-
-- [jlc.isAuthenticated(sessionId, cb)](#jlcisauthenticatedsessionid-cb)
+- [`jlc.isAuthenticated(sessionId, cb)`](#jlcisauthenticatedsessionid-cb)
 - [`jlc.beginAuthentication(sessionId, contactAddress)`](#jlcbeginauthenticationsessionid-contactaddress)
 - [`jlc.authenticate(secretToken, cb)`](#jlcauthenticatesecrettoken-cb)
 - [`jlc.unauthenticate(sessionId, cb)`](#jlcunauthenticatesessionid-cb)
