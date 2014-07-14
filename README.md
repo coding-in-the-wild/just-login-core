@@ -112,7 +112,7 @@ Sets the appropriate session id to be unauthenticated.
 
 ##Events
 
-`authentication initiated` is emitted when beginAuthentication is called. (Which should be when the user clicks the "login" button.)
+`"authentication initiated"` is emitted when beginAuthentication is called. (Which should be when the user clicks the "login" button.)
 
 	jlc.on('authentication initiated', function (obj) {
 		console.log(object.token)
