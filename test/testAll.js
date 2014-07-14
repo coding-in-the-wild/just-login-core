@@ -14,38 +14,37 @@ test('test for the entire just-login core', function (t) {
 	jlc.isAuthenticated(fakeId, function (err, val) { //Not authenticated yet
 		t.notOk(err, 'no error for isAuthenticated 1')
 		t.notOk(val, 'no value came back')
-	})
-	jlc.beginAuthentication(fakeId, fakeAddress)
-	jlc.on('authentication initiated', function (obj) {
-		t.ok(obj.token, "Token exists")
-		t.equal(obj.contactAddress, fakeAddress, "Adresses match")
 		
-		jlc.isAuthenticated(fakeId, function (err, val) { //Not authenticated yet
-			t.notOk(err, 'no error for isAuthenticated 2')
-			t.notOk(val, 'no value came back')
-		})
-		
-		jlc.authenticate(obj.token, function (err, value) {
-				t.notOk(err, 'no error for authenticate')
-				t.ok(value, 'got a value back')
-				//t.ok(value.contactAddress, 'contact address returned')
-				//t.ok(value.sessionId, 'session id returned')
-				//t.equal(value.contactAddress, fakeAddress, 'got back correct value')
-				t.equal(value, fakeAddress, 'got back correct value')
+		jlc.beginAuthentication(fakeId, fakeAddress)
+
+		jlc.on('authentication initiated', function (obj) {
+			t.ok(obj.token, "Token exists")
+			t.equal(obj.contactAddress, fakeAddress, "Adresses match")
 			
-			jlc.isAuthenticated(fakeId, function (err, val) { //Authenticated now
-				t.notOk(err, 'no error for isAuthenticated 3')
-				console.log("val.....")
-				console.log(val)
-				t.equal(val, fakeAddress, 'got address back')
+			jlc.isAuthenticated(fakeId, function (err, val) { //Not authenticated yet
+				t.notOk(err, 'no error for isAuthenticated 2')
+				t.notOk(val, 'no value came back')
+			})
+			
+			jlc.authenticate(obj.token, function (err, value) {
+					t.notOk(err, 'no error for authenticate')
+					t.ok(value, 'got a value back')
+					t.equal(value, fakeAddress, 'got back correct value')
+				
+				jlc.isAuthenticated(fakeId, function (err, val) { //Authenticated now
+					t.notOk(err, 'no error for isAuthenticated 3')
+					console.log("val.....")
+					console.log(val)
+					t.equal(val, fakeAddress, 'got address back')
 
-				jlc.unauthenticate(fakeId, function (err) {
-					t.notOk(err)
+					jlc.unauthenticate(fakeId, function (err) {
+						t.notOk(err)
 
-					jlc.isAuthenticated(fakeId, function (err, val) { //Not authenticated yet
-						t.notOk(err, 'no error for isAuthenticated 2')
-						t.notOk(val, 'no value came back')
-						t.end()
+						jlc.isAuthenticated(fakeId, function (err, val) { //Not authenticated yet
+							t.notOk(err, 'no error for isAuthenticated 2')
+							t.notOk(val, 'no value came back')
+							t.end()
+						})
 					})
 				})
 			})

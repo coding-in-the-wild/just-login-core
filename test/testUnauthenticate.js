@@ -10,17 +10,18 @@ test('test for unauthenticate', function(t) {
 	var levelup = Levelup('newThang')
 	var jlc = JustLoginCore(levelup)
 	
-	t.plan(2)
+	t.plan(3)
 	
-	jlc.unauthenticate(fakeId, function(err) {
+	jlc.unauthenticate(fakeId, function(err) { //not yet authenticated
 		t.notOk(err, 'no error')
-		//t.ok(err.invalidToken, 'correct error')
-	})
 	
-	levelup.put(fakeId, fakeAddress, function(err) {
-		jlc.unauthenticate(fakeId, function(err) {
+		levelup.put(fakeId, fakeAddress, function(err) { //authenticate
 			t.notOk(err, 'no error')
-			t.end()
+
+			jlc.unauthenticate(fakeId, function(err) { //previously authenticated
+				t.notOk(err, 'no error')
+				t.end()
+			})
 		})
 	})
 	

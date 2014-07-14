@@ -22,13 +22,11 @@ module.exports = function JustLoginCore(db, tokenGen) {
 	
 	tokenGen = tokenGen || UUID
 	
-	//isAuthenticated(session id, cb) -> calls the callback with null or a contact address if authenticated
+	//isAuthenticated(session id, cb)
+	//calls the callback with an error if applicable and either null or a contact address if authenticated
 	function isAuthenticated(sessionId, cb) { //cb(err, addr)
 		db.get(sessionId, dbSessionIdOpts, function(err, val) {
 			if (err && !err.notFound) { //if bad error
-				err.get = true
-				err.isAuth = true
-				err.ioe = err instanceof Error
 				cb(err)
 			} else if (err && err.notFound) { //if notFound error
 				cb(null, null)
@@ -38,7 +36,8 @@ module.exports = function JustLoginCore(db, tokenGen) {
 		})
 	}
 	
-	//beginAuthentication(session id, contact address) -> emits an event with a secret token and the contact address, so somebody can go send a message to that address
+	//beginAuthentication(session id, contact address)
+	//emits an event with a secret token and the contact address, so somebody can go send a message to that address
 	function beginAuthentication(sessionId, contactAddress) {
 		var token = tokenGen()
 		var storeUnderToken = {
@@ -56,37 +55,33 @@ module.exports = function JustLoginCore(db, tokenGen) {
 		})
 	}
 	
-	//authenticate(secret token, cb) -> sets the appropriate session id to be authenticated with the contact address associated with that secret token.
-	//Calls the callback with null or the contact address depending on whether or not the login was successful (same as isAuthenticated)
+	//authenticate(secret token, cb)
+	//sets the appropriate session id to be authenticated with the contact address associated with that secret token.
+	//Calls the callback with and error and either null or the contact address depending on whether or not the login was successful (same as isAuthenticated)
 	function authenticate(token, cb) { //cb(err, addr)
 		db.get(token, dbTokenOpts, function(err, val) { //val = { contact address, session id }
 			if (err && !err.notFound) { //if error (not including the notFound error)
-				err.get = true
-				err.auth = true
-				err.ioe = err instanceof Error
 				cb(err)
-			} else if ((err && err.notFound) || !val) {
+			} else if ((err && err.notFound) || !val) { //if did not find value
 				var temp = new Error("invalid value returned from token")
 				temp.invalidToken = true
-				temp.auth = true
-				temp.ioe = err instanceof Error
 				cb(temp)
-			} else if (val && val.sessionId && val.contactAddress) {
+			} else if (val && val.sessionId && val.contactAddress) { //found value
 				db.put(val.sessionId, val.contactAddress, dbSessionIdOpts, function(err2) {
 					if (err2) {
-						err2.put = true
-						err2.auth = true
-						err2.ioe = err instanceof Error
 						cb(err2)
 					} else {
 						cb(null, val.contactAddress)
 					}
 				})
+			} else {
+				cb(new Error("Session Id or Contact Address not found"))
 			}
 		})
 	}
 	
-	//unauthenticate(session id, cb) -> deletes the token key and then the sessionid key from the database
+	//unauthenticate(session id, cb)
+	//deletes the sessionid key from the database
 	function unauthenticate(sessionId, cb) {
 		db.del(sessionId, dbSessionIdOpts, cb)
 	}
