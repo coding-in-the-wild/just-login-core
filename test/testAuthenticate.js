@@ -20,23 +20,22 @@ test('test for authenticate', function(t) {
 	//authenticate(secret token, cb) -> sets the appropriate session id to be authenticated with the contact address associated with that secret token.
 	//Calls the callback with null or the contact address depending on whether or not the login was successful (same as isAuthenticated)
 
-	t.plan(8)
+	t.plan(7)
 	
 	jlc.authenticate(fakeSecretToken, function(err, value) {
-		t.ok(err, 'an error')
-		t.ok(err.invalidToken, 'correct error')
+		t.notOk(err, 'no error')
 		t.notOk(value, 'nothing returned')
-	})
 	
-	levelup.put(fakeSecretToken, fakeTokenData, dbTokenOpts, function(err) {
-		t.notOk(err, 'no err for put')
+		levelup.put(fakeSecretToken, fakeTokenData, dbTokenOpts, function(err) {
+			t.notOk(err, 'no err for put')
 
-		jlc.authenticate(fakeSecretToken, function(err, value) {
-			t.notOk(err, 'no error')
-			t.ok(value, 'something returned')
-			t.notEqual(value, '[object Object]', 'should not be a string saying "[object Object]"')
-			t.equal(value, fakeTokenData.contactAddress, 'got back correct value')
-			t.end()
+			jlc.authenticate(fakeSecretToken, function(err, value) {
+				t.notOk(err, 'no error')
+				t.ok(value, 'something returned')
+				t.notEqual(value, '[object Object]', 'should not be a string saying "[object Object]"')
+				t.equal(value, fakeTokenData.contactAddress, 'got back correct value')
+				t.end()
+			})
 		})
 	})
 })

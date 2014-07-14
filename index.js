@@ -63,9 +63,7 @@ module.exports = function JustLoginCore(db, tokenGen) {
 			if (err && !err.notFound) { //if error (not including the notFound error)
 				cb(err)
 			} else if ((err && err.notFound) || !val) { //if did not find value
-				var temp = new Error("invalid value returned from token")
-				temp.invalidToken = true
-				cb(temp)
+				cb(null, null)
 			} else if (val && val.sessionId && val.contactAddress) { //found value
 				db.put(val.sessionId, val.contactAddress, dbSessionIdOpts, function(err2) {
 					if (err2) {

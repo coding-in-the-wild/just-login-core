@@ -3,16 +3,15 @@ just-login-core
 
 This module handles the authentication at the database level for other just login modules.
 
-- [Information](#information)
 - [Startup](#startup)
 - [Jlc(db[, tokenGenerator])](#jlcdb-tokengenerator)
 - [jlc.isAuthenticated(sessionId, cb)](#jlcisauthenticatedsessionid-cb)
 - [jlc.beginAuthentication(sessionId, contactAddress)](#jlcbeginauthenticationsessionid-contactaddress)
 - [jlc.authenticate(secretToken, cb)](#jlcauthenticatesecrettoken-cb)
-- [jlc.unauthenticate(sessionId, cb)](#jlcunauthenticatesessionid-secrettoken-cb)
+- [jlc.unauthenticate(sessionId, cb)](#jlcunauthenticatesessionid-cb)
 - [Events](#events)
 
-#Startup
+##Startup
 
 Install with npm:
 
@@ -22,66 +21,74 @@ Require:
 
 	var Jlc = require('just-login-core')
 	
-#Jlc(db[, tokenGenerator])
+##Jlc(db[, tokenGenerator])
 
 `Jlc()` is a constructor with 2 arguments, `db`, and `tokenGenerator` (optional). 
 
-`db` is passed a levelup database.
+`db` is expecting a levelup database.
 
-`tokenGenerator` can be passed token generating function, which must return a unique string. Defaults to a UUID generator.
+`tokenGenerator` is expecting a function that returns an unique string each time it is called. This is used for token generation. Defaults to a UUID generator.
 
-The constructed object is an event emitter. (See [Events](#events).)
+The constructed object is an event emitter, (see [Events](#events),) and has the following methods:
+
+- [jlc.isAuthenticated(sessionId, cb)](#jlcisauthenticatedsessionid-cb)
+- [`jlc.beginAuthentication(sessionId, contactAddress)`](#jlcbeginauthenticationsessionid-contactaddress)
+- [`jlc.authenticate(secretToken, cb)`](#jlcauthenticatesecrettoken-cb)
+- [`jlc.unauthenticate(sessionId, cb)`](#jlcunauthenticatesessionid-cb)
 
 	var Jlc = require('just-login-core')
-	var level = require('level-mem')
-	var db = level('uniqueNameHere')
+	var Level = require('level-mem')
+	var db = Level('uniqueDatabaseNameHere')
 	var jlc = Jlc(db)
 
-or
+##jlc.isAuthenticated(sessionId, cb)
 
-	var jlc = require('just-login-core')(require('level-mem')('uniqueNameHere'))
+Checks if a user is authenticated. (Logged in.)
 
-Please don't do the latter; it's ugly, hard to read, and ugly.
+- `sessionId` is a string of the session id in question.
+- `cb` is a function with these arguments: `err`, `contactAddress`.
+	- `err` is null if there was no error, and is an Error object if there was an error.
+	- `contactAddress` is null is the user is not authenticated, and is a string of their contact address if they are authenticated.
 
-#jlc.isAuthenticated(sessionId, cb)
-
-Calls the callback with null or a contact address if authenticated
-
-Example of an authenticated user (a user who was logged in previously)
+Example of an authenticated user:
 
 	jlc.isAuthenticated("previouslyLoggedInSessionId", function(err, contactAddress) {
 		if (!err)
 			console.log(contactAddress) //logs: "fake@example.com"
 	})
 
-Example of an unauthenticated user (a user who was NOT logged in previously)
+Example of an unauthenticated user:
 
 	jlc.isAuthenticated("notPreviouslyLoggedInSessionId", function(err, contactAddress) {
 		if (!err)
-			console.log(contactAddress) //logs: ""
+			console.log(contactAddress) //logs: "null"
 	})
 
-#jlc.beginAuthentication(sessionId, contactAddress)
+##jlc.beginAuthentication(sessionId, contactAddress)
 
-Emits an event with a secret token and the contact address, so somebody can go send a message to that address.
+Starts the authentication process by emitting the 'authentication initiated' event with a secret token and the contact address.
+
+Something else must listen for the event, and send a message to the user. See [Events](#events) for more information.
+
+- `sessionId` is a string of the session id that is trying to get authenticated.
+- `contactAddress` is string of the user's contact info, (usually an email address).
 
 	jlc.beginAuthentication("wantToLogInSessionId", "fake@example.com")
-	jlc.on('authentication initiated', function(authInit) {
-		console.log(authInit.token)     //logs the secret token
-		console.log(authInit.sessionId) //logs the session id
-	})
 
-#jlc.authenticate(secretToken, cb)
+##jlc.authenticate(secretToken, cb)
 
 Sets the appropriate session id to be authenticated with the contact address associated with that secret token.
 
-Calls the callback with null or the contact address depending on whether or not the login was successfull (same as isAuthenticated)
+- `secretToken` is a string of the token that is trying to get authenticated.
+- `cb` is a function with these arguments: `err`, `contactAddress`. (Same as [`jlc.isAuthenticated()`](#jlcisauthenticatedsessionid-cb).)
+	- `err` is null if there was no error, and is an Error object if there was an error.
+	- `contactAddress` is null is the user is not authenticated, and is a string of their contact address if they are authenticated.
 
 If the token is invalid:
 
 	jlc.authenticate("tokenFromEmail", function(err, contactAddress) {
 		if (!err)
-			console.log(contactAddress) //logs: ""
+			console.log(contactAddress) //logs: "null"
 	})
 
 If the token is valid:
@@ -91,31 +98,22 @@ If the token is valid:
 			console.log(contactAddress) //logs: "fake@example.com"
 	})
 
-#jlc.unauthenticate(sessionId, secretToken, cb)
+##jlc.unauthenticate(sessionId, cb)
 
 Sets the appropriate session id to be unauthenticated.
 
-Calls the callback with an error if one occurs. Note that if no callback is given, the error will be thrown.
-
-If the token is valid: (i.e. logged in)
+- `secretToken` is a string of the token that is trying to get authenticated.
+- `cb` is a function with these arguments: `err`, `contactAddress`. (Same as [`jlc.isAuthenticated()`](#jlcisauthenticatedsessionid-cb).)
+	- `err` is undefined if there was no error, and is an Error object if there was an error.
 
 	jlc.unauthenticate("thisIsAValidToken", function(err) {
 		if (err)
-			console.log("error:", err.message)
+			console.log("error:", err.message) //this is expected for invalid tokens (not previously logged in)
 		else
-			console.log("you have been logged out") //this is expected for valid tokens
+			console.log("you have been logged out") //this is expected for valid tokens (previously logged in)
 	})
 
-If the token is invalid:
-
-	jlc.unauthenticate("thisIsAnInvalidToken", function(err) {
-		if (err)
-			console.log("error:", err.message) //this is expected for invalid tokens
-		else
-			console.log("you have been logged out")
-	})
-
-#Events
+##Events
 
 `authentication initiated` is emitted when beginAuthentication is called. (Which should be when the user clicks the "login" button.)
 
