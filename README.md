@@ -4,7 +4,7 @@ just-login-core
 This module handles the authentication at the database level for other just login modules.
 
 - [Information](#information)
-- [Install](#install)
+- [Startup](#startup)
 - [Jlc(db[, tokenGenerator])](#jlcdb-tokengenerator)
 - [jlc.isAuthenticated(sessionId, cb)](#jlcisauthenticatedsessionid-cb)
 - [jlc.beginAuthentication(sessionId, contactAddress)](#jlcbeginauthenticationsessionid-contactaddress)
@@ -12,11 +12,15 @@ This module handles the authentication at the database level for other just logi
 - [jlc.unauthenticate(sessionId, cb)](#jlcunauthenticatesessionid-secrettoken-cb)
 - [Events](#events)
 
-#Install
+#Startup
 
 Install with npm:
 
 	npm install just-login-core
+
+Require:
+
+	var Jlc = require('just-login-core')
 	
 #Jlc(db[, tokenGenerator])
 
