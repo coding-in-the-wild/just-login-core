@@ -70,6 +70,8 @@ Something else must listen for the event, and send a message to the user. See [E
 - `sessionId` is a string of the session id that is trying to get authenticated.
 - `contactAddress` is string of the user's contact info, (usually an email address).
 
+Example:
+
 	jlc.beginAuthentication("wantToLogInSessionId", "fake@example.com")
 
 ##jlc.authenticate(secretToken, cb)
@@ -102,6 +104,8 @@ Sets the appropriate session id to be unauthenticated.
 - `secretToken` is a string of the token that is trying to get authenticated.
 - `cb` is a function with these arguments: `err`, `contactAddress`. (Same as [`jlc.isAuthenticated()`](#jlcisauthenticatedsessionid-cb).)
 	- `err` is undefined if there was no error, and is an Error object if there was an error.
+
+Example:
 
 	jlc.unauthenticate("thisIsAValidToken", function(err) {
 		if (err)
