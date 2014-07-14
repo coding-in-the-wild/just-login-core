@@ -104,7 +104,7 @@ If the token is valid:
 Sets the appropriate session id to be unauthenticated.
 
 - `secretToken` is a string of the token that is trying to get authenticated.
-- `cb` is a function with these arguments: `err`, `contactAddress`. (Same as [`jlc.isAuthenticated()`](#jlcisauthenticatedsessionid-cb).)
+- `cb` is a function with this argument: `err`.
 	- `err` is undefined if there was no error, and is an Error object if there was an error.
 
 Example:
