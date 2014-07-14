@@ -95,10 +95,8 @@ Calls the callback with an error if one occurs. Note that if no callback is give
 
 If the token is valid: (i.e. logged in)
 
-	jlc.unauthenticate("thisIsAValidToken", function(err, contactAddress) {
-		if (err && err.invalidToken)
-			console.log("invalid token")
-		else if (err)
+	jlc.unauthenticate("thisIsAValidToken", function(err) {
+		if (err)
 			console.log("error:", err.message)
 		else
 			console.log("you have been logged out") //this is expected for valid tokens
@@ -107,10 +105,8 @@ If the token is valid: (i.e. logged in)
 If the token is invalid:
 
 	jlc.unauthenticate("thisIsAnInvalidToken", function(err) {
-		if (err && err.invalidToken) //this is expected for invalid tokens
-			console.log("invalid token")
-		else if (err)
-			console.log("error:", err.message)
+		if (err)
+			console.log("error:", err.message) //this is expected for invalid tokens
 		else
 			console.log("you have been logged out")
 	})
@@ -124,4 +120,4 @@ If the token is invalid:
 		console.log(object.contactAddress)
 	})
 
-(Suggestion: use the official [Just-Login-Emailer](https://github.com/coding-in-the-wild/just-login-emailer) or my (more updated?) fork of the [Just-Login-Emailer](https://github.com/ArtskydJ/just-login-emailer) for this.)
+(Suggestion: use the official [Just-Login-Emailer](https://github.com/coding-in-the-wild/just-login-emailer) or my (more updated?) fork of the [Just-Login-Emailer](https://github.com/ArtskydJ/just-login-emailer) for catching this event.)
