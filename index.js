@@ -38,21 +38,31 @@ module.exports = function JustLoginCore(db, tokenGen) {
 	
 	//beginAuthentication(session id, contact address)
 	//emits an event with a secret token and the contact address, so somebody can go send a message to that address
-	function beginAuthentication(sessionId, contactAddress) {
-		var token = tokenGen()
-		var storeUnderToken = {
-			sessionId: sessionId,
-			contactAddress: contactAddress
-		}
-		db.put(token, storeUnderToken, dbTokenOpts, function(err) {
-			if (err) throw err
-			process.nextTick(function() {
-				emitter.emit('authentication initiated', {
-					token: token,
-					contactAddress: contactAddress
-				})
+	function beginAuthentication(sessionId, contactAddress, cb) {
+		if (typeof sessionId !== "string" || typeof contactAddress !== "string") {
+			process.nextTick(function () {
+				cb(new Error("Session id or contact address is not a string."))
 			})
-		})
+		} else {
+			var token = tokenGen()
+			var storeUnderToken = {
+				sessionId: sessionId,
+				contactAddress: contactAddress
+			}
+			db.put(token, storeUnderToken, dbTokenOpts, function(err) {
+				if (err) {
+					cb(err)
+				} else {
+					var authenticationRequestInformation = {
+						token: token,
+						contactAddress: contactAddress
+					}
+					emitter.emit('authentication initiated', authenticationRequestInformation)
+					cb(null, authenticationRequestInformation)
+				}
+			})
+		}
+		
 	}
 	
 	//authenticate(secret token, cb)
@@ -60,20 +70,24 @@ module.exports = function JustLoginCore(db, tokenGen) {
 	//Calls the callback with and error and either null or the contact address depending on whether or not the login was successful (same as isAuthenticated)
 	function authenticate(token, cb) { //cb(err, addr)
 		db.get(token, dbTokenOpts, function(err, val) { //val = { contact address, session id }
-			if (err && !err.notFound) { //if error (not including the notFound error)
+			if (err && err.notFound) { //if did not find value
+				cb(new Error('No token found'))
+			} else if (err) { //if error (not including the notFound error)
 				cb(err)
-			} else if ((err && err.notFound) || !val) { //if did not find value
-				cb(null, null)
-			} else if (val && val.sessionId && val.contactAddress) { //found value
+			} else { //found value
 				db.put(val.sessionId, val.contactAddress, dbSessionIdOpts, function(err2) {
 					if (err2) {
 						cb(err2)
 					} else {
-						cb(null, val.contactAddress)
+						db.del(token, dbTokenOpts, function (err) {
+							if (err) {
+								cb(err)
+							} else {
+								cb(null, val.contactAddress)
+							}
+						})
 					}
 				})
-			} else {
-				cb(new Error("Session Id or Contact Address not found"))
 			}
 		})
 	}

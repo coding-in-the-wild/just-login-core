@@ -9,13 +9,15 @@ test('test for the entire just-login core', function (t) {
 	var levelup = Levelup('newThang')
 	var jlc = JustLoginCore(levelup)
 	
-	t.plan(14)
+	t.plan(15)
 	
 	jlc.isAuthenticated(fakeId, function (err, val) { //Not authenticated yet
 		t.notOk(err, 'no error for isAuthenticated 1')
 		t.notOk(val, 'no value came back')
 		
-		jlc.beginAuthentication(fakeId, fakeAddress)
+		jlc.beginAuthentication(fakeId, fakeAddress, function (err){
+			t.notOk(err)
+		})
 
 		jlc.on('authentication initiated', function (obj) {
 			t.ok(obj.token, "Token exists")
