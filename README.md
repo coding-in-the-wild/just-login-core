@@ -45,7 +45,7 @@ Example:
 Checks if a user is authenticated. (Logged in.)
 
 - `sessionId` is a string of the session id in question.
-- `cb` is a function with these arguments: `err`, `contactAddress`.
+- `cb` is a function with the following arguments:
 	- `err` is null if there was no error, and is an Error object if there was an error.
 	- `contactAddress` is null is the user is not authenticated, and is a string of their contact address if they are authenticated.
 
@@ -71,7 +71,11 @@ Something else must listen for the event, and send a message to the user. See [E
 
 - `sessionId` is a string of the session id that is trying to get authenticated.
 - `contactAddress` is string of the user's contact info, (usually an email address).
-- `cb`
+- `cb` is a function with the following arguments:
+	- `err` is null if there is no error, and is an Error object is there was an error.
+	- `authReqInfo` is an object with the authentication request information. The object is identical to the object emitted in the event, with the following properties:
+		- `token` is a string of the token.
+		- `contactAddress` is a string with the contact address.
 
 Example:
 
@@ -82,7 +86,7 @@ Example:
 Sets the appropriate session id to be authenticated with the contact address associated with that secret token.
 
 - `secretToken` is a string of the token that is trying to get authenticated.
-- `cb` is a function with these arguments: `err`, `contactAddress`. (Same as [`jlc.isAuthenticated()`](#jlcisauthenticatedsessionid-cb).)
+- `cb` is a function with the following arguments: (Same as [`jlc.isAuthenticated()`](#jlcisauthenticatedsessionid-cb).)
 	- `err` is null if there was no error, and is an Error object if there was an error.
 	- `contactAddress` is null is the user is not authenticated, and is a string of their contact address if they are authenticated.
 
@@ -105,7 +109,7 @@ If the token is valid:
 Sets the appropriate session id to be unauthenticated.
 
 - `secretToken` is a string of the token that is trying to get authenticated.
-- `cb` is a function with this argument: `err`.
+- `cb` is a function with the following argument:
 	- `err` is undefined if there was no error, and is an Error object if there was an error.
 
 Example:
