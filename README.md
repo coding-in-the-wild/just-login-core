@@ -52,15 +52,17 @@ Checks if a user is authenticated. (Logged in.)
 Example of an authenticated user:
 
 	jlc.isAuthenticated("previouslyLoggedInSessionId", function(err, contactAddress) {
-		if (!err)
+		if (!err) {
 			console.log(contactAddress) //logs: "fake@example.com"
+		}
 	})
 
 Example of an unauthenticated user:
 
 	jlc.isAuthenticated("notPreviouslyLoggedInSessionId", function(err, contactAddress) {
-		if (!err)
+		if (!err) {
 			console.log(contactAddress) //logs: "null"
+		}
 	})
 
 ##jlc.beginAuthentication(sessionId, contactAddress, cb)
@@ -79,7 +81,12 @@ Something else must listen for the event, and send a message to the user. See [E
 
 Example:
 
-	jlc.beginAuthentication("wantToLogInSessionId", "fake@example.com")
+	jlc.beginAuthentication("wantToLogInSessionId", "fake@example.com", function (err, authReqInfo) {
+		if (!err) {
+			console.log(authReqInfo.token) //logs the token
+			console.log(authReqInfo.contactAddress) //logs: "fake@example.com"
+		}
+	})
 
 ##jlc.authenticate(secretToken, cb)
 
@@ -93,15 +100,17 @@ Sets the appropriate session id to be authenticated with the contact address ass
 If the token is invalid:
 
 	jlc.authenticate("tokenFromEmail", function(err, contactAddress) {
-		if (!err)
+		if (!err) {
 			console.log(contactAddress) //logs: "null"
+		}
 	})
 
 If the token is valid:
 
 	jlc.authenticate("tokenFromEmail", function(err, contactAddress) {
-		if (!err)
+		if (!err) {
 			console.log(contactAddress) //logs: "fake@example.com"
+		}
 	})
 
 ##jlc.unauthenticate(sessionId, cb)
@@ -115,17 +124,18 @@ Sets the appropriate session id to be unauthenticated.
 Example:
 
 	jlc.unauthenticate("thisIsAValidToken", function(err) {
-		if (err)
+		if (err) {
 			console.log("error:", err.message) //this is expected for invalid tokens (not previously logged in)
-		else
+		} else {
 			console.log("you have been logged out") //this is expected for valid tokens (previously logged in)
+		}
 	})
 
 ##Events
 
 `"authentication initiated"` is emitted when beginAuthentication is called. (Which should be when the user clicks the "login" button.)
 
-	jlc.on('authentication initiated', function (obj) {
+	jlc.on('authentication initiated', function (object) {
 		console.log(object.token)
 		console.log(object.contactAddress)
 	})
