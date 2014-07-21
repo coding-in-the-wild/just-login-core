@@ -25,13 +25,13 @@ module.exports = function JustLoginCore(db, tokenGen) {
 	//isAuthenticated(session id, cb)
 	//calls the callback with an error if applicable and either null or a contact address if authenticated
 	function isAuthenticated(sessionId, cb) { //cb(err, addr)
-		db.get(sessionId, dbSessionIdOpts, function(err, val) {
+		db.get(sessionId, dbSessionIdOpts, function(err, address) {
 			if (err && !err.notFound) { //if bad error
 				cb(err)
 			} else if (err && err.notFound) { //if notFound error
 				cb(null, null)
 			} else { //if no error
-				cb(null, val)
+				cb(null, address)
 			}
 		})
 	}
@@ -69,13 +69,13 @@ module.exports = function JustLoginCore(db, tokenGen) {
 	//sets the appropriate session id to be authenticated with the contact address associated with that secret token.
 	//Calls the callback with and error and either null or the contact address depending on whether or not the login was successful (same as isAuthenticated)
 	function authenticate(token, cb) { //cb(err, addr)
-		db.get(token, dbTokenOpts, function(err, val) { //val = { contact address, session id }
+		db.get(token, dbTokenOpts, function(err, obj) { //obj = { contact address, session id }
 			if (err && err.notFound) { //if did not find value
 				cb(new Error('No token found'))
 			} else if (err) { //if error (not including the notFound error)
 				cb(err)
 			} else { //found value
-				db.put(val.sessionId, val.contactAddress, dbSessionIdOpts, function(err2) {
+				db.put(obj.sessionId, obj.contactAddress, dbSessionIdOpts, function(err2) {
 					if (err2) {
 						cb(err2)
 					} else {
@@ -83,7 +83,7 @@ module.exports = function JustLoginCore(db, tokenGen) {
 							if (err) {
 								cb(err)
 							} else {
-								cb(null, val.contactAddress)
+								cb(null, obj.contactAddress)
 							}
 						})
 					}
