@@ -6,7 +6,7 @@ This module handles the authentication at the database level for other just logi
 - [Startup](#startup)
 - [Jlc(db[, tokenGenerator])](#jlcdb-tokengenerator)
 - [jlc.isAuthenticated(sessionId, cb)](#jlcisauthenticatedsessionid-cb)
-- [jlc.beginAuthentication(sessionId, contactAddress)](#jlcbeginauthenticationsessionid-contactaddress)
+- [jlc.beginAuthentication(sessionId, contactAddress, cb)](#jlcbeginauthenticationsessionid-contactaddress-cb)
 - [jlc.authenticate(secretToken, cb)](#jlcauthenticatesecrettoken-cb)
 - [jlc.unauthenticate(sessionId, cb)](#jlcunauthenticatesessionid-cb)
 - [Events](#events)
@@ -29,7 +29,7 @@ Require:
 `Jlc()` constructs an object that is an event emitter, (see [Events](#events)) and has the following methods:
 
 - [`jlc.isAuthenticated(sessionId, cb)`](#jlcisauthenticatedsessionid-cb)
-- [`jlc.beginAuthentication(sessionId, contactAddress)`](#jlcbeginauthenticationsessionid-contactaddress)
+- [`jlc.beginAuthentication(sessionId, contactAddress, cb)`](#jlcbeginauthenticationsessionid-contactaddress-cb)
 - [`jlc.authenticate(secretToken, cb)`](#jlcauthenticatesecrettoken-cb)
 - [`jlc.unauthenticate(sessionId, cb)`](#jlcunauthenticatesessionid-cb)
 
@@ -63,7 +63,7 @@ Example of an unauthenticated user:
 			console.log(contactAddress) //logs: "null"
 	})
 
-##jlc.beginAuthentication(sessionId, contactAddress)
+##jlc.beginAuthentication(sessionId, contactAddress, cb)
 
 Starts the authentication process by emitting the 'authentication initiated' event with a secret token and the contact address.
 
@@ -71,6 +71,7 @@ Something else must listen for the event, and send a message to the user. See [E
 
 - `sessionId` is a string of the session id that is trying to get authenticated.
 - `contactAddress` is string of the user's contact info, (usually an email address).
+- `cb`
 
 Example:
 
