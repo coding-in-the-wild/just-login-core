@@ -1,26 +1,39 @@
 var EventEmitter = require('events').EventEmitter
-var dbSessionIdOpts = {
-	keyEncoding: 'utf8',
-	valueEncoding: 'utf8'
+var ttl = require('level-ttl')
+
+function UUID() { //'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
+	return 'xxxxxxxxxxxx4xxxyxxxxxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+		var r = Math.random() * 16 | 0
+		var v = c == 'x' ? r : (r & 0x3 | 0x8)
+		return v.toString(16)
+	})
 }
-var dbTokenOpts = {
-	keyEncoding: 'utf8',
-	valueEncoding: 'json'
-}
 
-module.exports = function JustLoginCore(db, tokenGen) {
+module.exports = function JustLoginCore(db, options) {
+	if (!db) {
+		throw new Error("Just Login Core requires a valid levelup database!")
+	}
+	db = ttl(db)
+	var emitter = Object.create(new EventEmitter())
 
-	function UUID() { //'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
-		return 'xxxxxxxxxxxx4xxxyxxxxxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-			var r = Math.random() * 16 | 0
-			var v = c == 'x' ? r : (r & 0x3 | 0x8)
-			return v.toString(16)
-		})
-    }
+	options = options || {}
+	options.tokenGenerator = options.tokenGenerator || UUID
+	options.ttl = options.ttl || (1000 * 20)//60 * 5) //5 minutes //20 sec
 
-    var emitter = Object.create(new EventEmitter())
+	var dbSessionIdOpts = {
+		keyEncoding: 'utf8',
+		valueEncoding: 'utf8'
+	}
+	var dbTokenOpts = {
+		keyEncoding: 'utf8',
+		valueEncoding: 'json',
+		ttl: options.ttl
+	}
 	
-	tokenGen = tokenGen || UUID
+	// to implement the 'clicky clicky logout', we will need the token emitter to emit the session id also.
+	// rename 'val' to SOMETHING ELSE!!!
+
+
 	
 	//isAuthenticated(session id, cb)
 	//calls the callback with an error if applicable and either null or a contact address if authenticated
@@ -44,21 +57,21 @@ module.exports = function JustLoginCore(db, tokenGen) {
 				cb(new Error("Session id or contact address is not a string."))
 			})
 		} else {
-			var token = tokenGen()
+			var token = options.tokenGenerator()
 			var storeUnderToken = {
 				sessionId: sessionId,
 				contactAddress: contactAddress
 			}
-			db.put(token, storeUnderToken, dbTokenOpts, function(err) {
+			db.put(token, storeUnderToken, dbTokenOpts, function (err) {
 				if (err) {
 					cb(err)
 				} else {
-					var authenticationRequestInformation = {
+					var credentials = {
 						token: token,
 						contactAddress: contactAddress
 					}
-					emitter.emit('authentication initiated', authenticationRequestInformation)
-					cb(null, authenticationRequestInformation)
+					emitter.emit('authentication initiated', credentials)
+					cb(null, credentials)
 				}
 			})
 		}
@@ -69,13 +82,13 @@ module.exports = function JustLoginCore(db, tokenGen) {
 	//sets the appropriate session id to be authenticated with the contact address associated with that secret token.
 	//Calls the callback with and error and either null or the contact address depending on whether or not the login was successful (same as isAuthenticated)
 	function authenticate(token, cb) { //cb(err, addr)
-		db.get(token, dbTokenOpts, function(err, obj) { //obj = { contact address, session id }
+		db.get(token, dbTokenOpts, function (err, credentials) { //credentials = { contact address, session id }
 			if (err && err.notFound) { //if did not find value
 				cb(new Error('No token found'))
 			} else if (err) { //if error (not including the notFound error)
 				cb(err)
 			} else { //found value
-				db.put(obj.sessionId, obj.contactAddress, dbSessionIdOpts, function(err2) {
+				db.put(credentials.sessionId, credentials.contactAddress, dbSessionIdOpts, function (err2) {
 					if (err2) {
 						cb(err2)
 					} else {
@@ -83,7 +96,7 @@ module.exports = function JustLoginCore(db, tokenGen) {
 							if (err) {
 								cb(err)
 							} else {
-								cb(null, obj.contactAddress)
+								cb(null, credentials)
 							}
 						})
 					}

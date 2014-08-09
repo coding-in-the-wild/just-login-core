@@ -27,5 +27,7 @@
   "scripts": {
     "test": "tap ./test/*.js"
   },
-  "dependencies": {}
+  "dependencies": {
+    "level-ttl": "^0.6.1"
+  }
 }
