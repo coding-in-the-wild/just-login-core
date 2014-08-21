@@ -18,7 +18,7 @@ module.exports = function JustLoginCore(db, options) {
 
 	options = options || {}
 	options.tokenGenerator = options.tokenGenerator || UUID
-	options.ttl = options.ttl || (1000 * 20)//60 * 5) //5 minutes //20 sec
+	options.ttl = options.ttl || (1000 * 20) //20 sec (change to 5 min)
 
 	var dbSessionIdOpts = {
 		keyEncoding: 'utf8',
@@ -31,9 +31,6 @@ module.exports = function JustLoginCore(db, options) {
 	}
 	
 	// to implement the 'clicky clicky logout', we will need the token emitter to emit the session id also.
-	// rename 'val' to SOMETHING ELSE!!!
-
-
 	
 	//isAuthenticated(session id, cb)
 	//calls the callback with an error if applicable and either null or a contact address if authenticated
