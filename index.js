@@ -1,5 +1,14 @@
 var EventEmitter = require('events').EventEmitter
 var ttl = require('level-ttl')
+var sublevel = require('level-sublevel')
+var ms = require('ms')
+var xtend = require('xtend')
+var Expirer = require('expire-unused-keys')
+var defaultOptions = {
+	tokenGenerator: UUID,
+	tokenTtl: ms('5 minutes'), //docs say 5 min
+	sessionUnauthenticatedAfterMsInactivity: ms('7 days') //docs say 1 week
+}
 
 function UUID() { //'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
 	return 'xxxxxxxxxxxx4xxxyxxxxxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -10,15 +19,18 @@ function UUID() { //'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
 }
 
 module.exports = function JustLoginCore(db, options) {
+	options = xtend(defaultOptions, options)
+
 	if (!db) {
 		throw new Error("Just Login Core requires a valid levelup database!")
 	}
-	db = ttl(db)
-	var emitter = Object.create(new EventEmitter())
+	db = sublevel(db)
+	var sessionDb = db.sublevel('session')
+	var tokenDb = db.sublevel('token')
+	tokenDb = ttl(tokenDb)
 
-	options = options || {}
-	options.tokenGenerator = options.tokenGenerator || UUID
-	options.ttl = options.ttl || (1000 * 20) //20 sec (change to 5 min)
+	var emitter = new EventEmitter()
+ 	var expirer = new Expirer(options.sessionUnauthenticatedAfterMsInactivity, db)
 
 	var dbSessionIdOpts = {
 		keyEncoding: 'utf8',
@@ -27,7 +39,7 @@ module.exports = function JustLoginCore(db, options) {
 	var dbTokenOpts = {
 		keyEncoding: 'utf8',
 		valueEncoding: 'json',
-		ttl: options.ttl
+		ttl: options.tokenTtl
 	}
 	
 	// to implement the 'clicky clicky logout', we will need the token emitter to emit the session id also.
@@ -35,12 +47,13 @@ module.exports = function JustLoginCore(db, options) {
 	//isAuthenticated(session id, cb)
 	//calls the callback with an error if applicable and either null or a contact address if authenticated
 	function isAuthenticated(sessionId, cb) { //cb(err, addr)
-		db.get(sessionId, dbSessionIdOpts, function(err, address) {
+		sessionDb.get(sessionId, dbSessionIdOpts, function(err, address) {
 			if (err && !err.notFound) { //if bad error
 				cb(err)
 			} else if (err && err.notFound) { //if notFound error
 				cb(null, null)
 			} else { //if no error
+				expirer.touch(sessionId)
 				cb(null, address)
 			}
 		})
@@ -59,7 +72,7 @@ module.exports = function JustLoginCore(db, options) {
 				sessionId: sessionId,
 				contactAddress: contactAddress
 			}
-			db.put(token, storeUnderToken, dbTokenOpts, function (err) {
+			tokenDb.put(token, storeUnderToken, dbTokenOpts, function (err) {
 				if (err) {
 					cb(err)
 				} else {
@@ -79,17 +92,18 @@ module.exports = function JustLoginCore(db, options) {
 	//sets the appropriate session id to be authenticated with the contact address associated with that secret token.
 	//Calls the callback with and error and either null or the contact address depending on whether or not the login was successful (same as isAuthenticated)
 	function authenticate(token, cb) { //cb(err, addr)
-		db.get(token, dbTokenOpts, function (err, credentials) { //credentials = { contact address, session id }
+		tokenDb.get(token, dbTokenOpts, function (err, credentials) { //credentials = { contact address, session id }
 			if (err && err.notFound) { //if did not find value
 				cb(new Error('No token found'))
 			} else if (err) { //if error (not including the notFound error)
 				cb(err)
 			} else { //found value
-				db.put(credentials.sessionId, credentials.contactAddress, dbSessionIdOpts, function (err2) {
+				sessionDb.put(credentials.sessionId, credentials.contactAddress, dbSessionIdOpts, function (err2) {
 					if (err2) {
 						cb(err2)
 					} else {
-						db.del(token, dbTokenOpts, function (err) {
+						expirer.touch(credentials.sessionId)
+						tokenDb.del(token, dbTokenOpts, function (err) {
 							if (err) {
 								cb(err)
 							} else {
@@ -105,7 +119,8 @@ module.exports = function JustLoginCore(db, options) {
 	//unauthenticate(session id, cb)
 	//deletes the sessionid key from the database
 	function unauthenticate(sessionId, cb) {
-		db.del(sessionId, dbSessionIdOpts, cb)
+		expirer.forget(sessionId)
+		sessionDb.del(sessionId, dbSessionIdOpts, cb)
 	}
 
 	emitter.isAuthenticated = isAuthenticated

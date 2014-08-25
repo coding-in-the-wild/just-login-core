@@ -4,7 +4,7 @@ just-login-core
 This module handles the authentication at the database level for other just login modules.
 
 - [Startup](#startup)
-- [Jlc(db[, tokenGenerator])](#jlcdb-tokengenerator)
+- [Jlc(db[, options])](#jlcdb-options)
 - [jlc.isAuthenticated(sessionId, cb)](#jlcisauthenticatedsessionid-cb)
 - [jlc.beginAuthentication(sessionId, contactAddress, cb)](#jlcbeginauthenticationsessionid-contactaddress-cb)
 - [jlc.authenticate(secretToken, cb)](#jlcauthenticatesecrettoken-cb)
@@ -21,10 +21,13 @@ Require:
 
 	var Jlc = require('just-login-core')
 	
-##Jlc(db[, tokenGenerator])
+##Jlc(db[, options])
 
 - `db` is expecting a levelup database.
-- `tokenGenerator` is expecting a function that returns an unique string each time it is called. This is used for token generation. Defaults to a UUID generator.
+- `options` is an object that holds the (**gasp**) options!
+	- `tokenGenerator` is expecting a function that returns an unique string each time it is called. This is used for token generation. Defaults to a UUID generator.
+	- `tokenTtl` is a number in milliseconds of a token's Time To Live (TTL). Defaults to 5 minutes.
+	- `sessionUnauthenticatedAfterMsInactivity` is a number in milliseconds of a session's period of inactivity before they are unauthenticated. If the user does not call `isAuthenticated()` within that time period, thy will be unauthenticated. (Logged out.) Defaults to 1 week.
 
 `Jlc()` constructs an object that is an event emitter, (see [Events](#events)) and has the following methods:
 
@@ -35,10 +38,12 @@ Require:
 
 Example:
 
-	var Jlc = require('just-login-core')
-	var Level = require('level-mem')
-	var db = Level('uniqueDatabaseNameHere')
-	var jlc = Jlc(db)
+```js
+var Jlc = require('just-login-core')
+var Level = require('level-mem')
+var db = Level('uniqueDatabaseNameHere')
+var jlc = Jlc(db)
+```
 
 ##jlc.isAuthenticated(sessionId, cb)
 
@@ -51,19 +56,23 @@ Checks if a user is authenticated. (Logged in.)
 
 Example of an authenticated user:
 
-	jlc.isAuthenticated("previouslyLoggedInSessionId", function(err, contactAddress) {
-		if (!err) {
-			console.log(contactAddress) //logs: "fake@example.com"
-		}
-	})
+```js
+jlc.isAuthenticated("previouslyLoggedInSessionId", function(err, contactAddress) {
+	if (!err) {
+		console.log(contactAddress) //logs: "fake@example.com"
+	}
+})
+```
 
 Example of an unauthenticated user:
 
-	jlc.isAuthenticated("notPreviouslyLoggedInSessionId", function(err, contactAddress) {
-		if (!err) {
-			console.log(contactAddress) //logs: "null"
-		}
-	})
+```js
+jlc.isAuthenticated("notPreviouslyLoggedInSessionId", function(err, contactAddress) {
+	if (!err) {
+		console.log(contactAddress) //logs: "null"
+	}
+})
+```
 
 ##jlc.beginAuthentication(sessionId, contactAddress, cb)
 
@@ -81,12 +90,14 @@ Something else must listen for the event, and send a message to the user. See [E
 
 Example:
 
-	jlc.beginAuthentication("wantToLogInSessionId", "fake@example.com", function (err, authReqInfo) {
-		if (!err) {
-			console.log(authReqInfo.token) //logs the token
-			console.log(authReqInfo.contactAddress) //logs: "fake@example.com"
-		}
-	})
+```js
+jlc.beginAuthentication("wantToLogInSessionId", "fake@example.com", function (err, authReqInfo) {
+	if (!err) {
+		console.log(authReqInfo.token) //logs the token
+		console.log(authReqInfo.contactAddress) //logs: "fake@example.com"
+	}
+})
+```
 
 ##jlc.authenticate(secretToken, cb)
 
@@ -99,19 +110,23 @@ Sets the appropriate session id to be authenticated with the contact address ass
 
 If the token is invalid:
 
-	jlc.authenticate("tokenFromEmail", function(err, contactAddress) {
-		if (!err) {
-			console.log(contactAddress) //logs: "null"
-		}
-	})
+```js
+jlc.authenticate("tokenFromEmail", function(err, contactAddress) {
+	if (!err) {
+		console.log(contactAddress) //logs: "null"
+	}
+})
+```
 
 If the token is valid:
 
-	jlc.authenticate("tokenFromEmail", function(err, contactAddress) {
-		if (!err) {
-			console.log(contactAddress) //logs: "fake@example.com"
-		}
-	})
+```js
+jlc.authenticate("tokenFromEmail", function(err, contactAddress) {
+	if (!err) {
+		console.log(contactAddress) //logs: "fake@example.com"
+	}
+})
+```
 
 ##jlc.unauthenticate(sessionId, cb)
 
@@ -123,21 +138,25 @@ Sets the appropriate session id to be unauthenticated.
 
 Example:
 
-	jlc.unauthenticate("thisIsAValidToken", function(err) {
-		if (err) {
-			console.log("error:", err.message) //this is expected for invalid tokens (not previously logged in)
-		} else {
-			console.log("you have been logged out") //this is expected for valid tokens (previously logged in)
-		}
-	})
+```js
+jlc.unauthenticate("thisIsAValidToken", function(err) {
+	if (err) {
+		console.log("error:", err.message) //this is expected for invalid tokens (not previously logged in)
+	} else {
+		console.log("you have been logged out") //this is expected for valid tokens (previously logged in)
+	}
+})
+```
 
 ##Events
 
 `"authentication initiated"` is emitted when beginAuthentication is called. (Which should be when the user clicks the "login" button.)
 
-	jlc.on('authentication initiated', function (object) {
-		console.log(object.token)
-		console.log(object.contactAddress)
-	})
+```js
+jlc.on('authentication initiated', function (object) {
+	console.log(object.token)
+	console.log(object.contactAddress)
+})
+```
 
 (Suggestion: use the [Just-Login-Emailer](https://github.com/coding-in-the-wild/just-login-emailer) to catch this event.)
