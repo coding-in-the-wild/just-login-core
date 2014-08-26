@@ -10,7 +10,7 @@ test('test for beginAuthentication', function(t) {
 	var jlc = JustLoginCore(levelup)
 	
 	t.plan(23)
-	jlc.beginAuthentication(fakeId, fakeAddress, function (err, authReqInfo) {
+	jlc.beginAuthentication(fakeId, fakeAddress, function (err, authReqInfo) { //O = One
 		t.notOk(err, "O - no error")
 		t.ok(authReqInfo.token, "O - Token exists")
 		t.ok(authReqInfo.contactAddress, "O - Contact Address exists")
@@ -19,7 +19,7 @@ test('test for beginAuthentication', function(t) {
 		t.equal(typeof authReqInfo.token, "string", "O - Token is a string")
 		t.equal(typeof authReqInfo.contactAddress, "string", "O - Contact Address is a string")
 
-		jlc.beginAuthentication(fakeId, fakeAddress, function (err, authReqInfo2) {
+		jlc.beginAuthentication(fakeId, fakeAddress, function (err, authReqInfo2) { //T = Two
 			t.notOk(err, "T - no error")
 			t.ok(authReqInfo2.token, "T - Token exists")
 			t.ok(authReqInfo2.contactAddress, "T - Contact Address exists")
@@ -32,7 +32,7 @@ test('test for beginAuthentication', function(t) {
 		})
 	})
 
-	jlc.on('authentication initiated', function(obj) {
+	jlc.on('authentication initiated', function(obj) { //E = Event
 		t.ok(obj.token, "E - Token exists")
 		t.ok(obj.contactAddress, "E - Contact Address exists")
 		t.equal(obj.contactAddress, fakeAddress, "E - Adresses match")

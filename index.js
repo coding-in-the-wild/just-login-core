@@ -7,6 +7,7 @@ var Expirer = require('expire-unused-keys')
 var defaultOptions = {
 	tokenGenerator: UUID,
 	tokenTtl: ms('5 minutes'), //docs say 5 min
+	tokenTtlCheckFrequencyMs: ms('10 seconds'), //docs say 10 sec
 	sessionUnauthenticatedAfterMsInactivity: ms('7 days') //docs say 1 week
 }
 
@@ -26,11 +27,14 @@ module.exports = function JustLoginCore(db, options) {
 	}
 	db = sublevel(db)
 	var sessionDb = db.sublevel('session')
+	var sessionExpirationDb = db.sublevel('expiration')
 	var tokenDb = db.sublevel('token')
-	tokenDb = ttl(tokenDb)
+	tokenDb = ttl(tokenDb, {
+		checkFrequency: options.tokenTtlCheckFrequencyMs
+	})
 
 	var emitter = new EventEmitter()
- 	var expirer = new Expirer(options.sessionUnauthenticatedAfterMsInactivity, db)
+ 	var expirer = new Expirer(options.sessionUnauthenticatedAfterMsInactivity, sessionExpirationDb)
 
 	var dbSessionIdOpts = {
 		keyEncoding: 'utf8',

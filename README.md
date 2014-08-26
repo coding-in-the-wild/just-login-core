@@ -27,6 +27,7 @@ Require:
 - `options` is an object that holds the (**gasp**) options!
 	- `tokenGenerator` is expecting a function that returns an unique string each time it is called. This is used for token generation. Defaults to a UUID generator.
 	- `tokenTtl` is a number in milliseconds of a token's Time To Live (TTL). Defaults to 5 minutes.
+	- `tokenTtlCheckFreqencyMs` is a number in milliseconds of the ttl's check frequency. (See [node-level-ttl](https://github.com/rvagg/node-level-ttl) and Ctrl+F (find/search) 'checkFrequency' for more details.) Defaults to 10 seconds.
 	- `sessionUnauthenticatedAfterMsInactivity` is a number in milliseconds of a session's period of inactivity before they are unauthenticated. If the user does not call `isAuthenticated()` within that time period, thy will be unauthenticated. (Logged out.) Defaults to 1 week.
 
 `Jlc()` constructs an object that is an event emitter, (see [Events](#events)) and has the following methods:

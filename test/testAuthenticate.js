@@ -24,15 +24,15 @@ test('test for authenticate', function(t) {
 
 	t.plan(8)
 	
-	jlc.authenticate(fakeSecretToken, function(err, value) { //token does not exist
+	jlc.authenticate(fakeSecretToken, function (err, value) { //token does not exist
 		t.ok(err, 'there was an error')
 		t.ok(err instanceof Error, "err is an Error")
 		t.notOk(value, 'nothing returned')
 	
-		db.put(fakeSecretToken, fakeTokenData, dbTokenOpts, function(err) { //making token exist
+		db.put(fakeSecretToken, fakeTokenData, dbTokenOpts, function (err) { //making token exist
 			t.notOk(err, 'no err for put')
 
-			jlc.authenticate(fakeSecretToken, function(err, credentials) { //token exists
+			jlc.authenticate(fakeSecretToken, function (err, credentials) { //token exists
 				t.notOk(err, 'no error in authenticate()')
 				t.ok(credentials, 'something returned')
 				t.notEqual(credentials, '[object Object]', 'should not be a string saying "[object Object]"')
