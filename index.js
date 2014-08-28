@@ -7,8 +7,9 @@ var Expirer = require('expire-unused-keys')
 var defaultOptions = {
 	tokenGenerator: UUID,
 	tokenTtl: ms('5 minutes'), //docs say 5 min
-	tokenTtlCheckFrequencyMs: ms('10 seconds'), //docs say 10 sec
-	sessionUnauthenticatedAfterMsInactivity: ms('7 days') //docs say 1 week
+	tokenTtlCheckIntervalMs: ms('10 seconds'), //docs say 10 sec
+	sessionUnauthenticatedAfterMsInactivity: ms('7 days'), //docs say 1 week
+	sessionTimeoutCheckIntervalMs: ms('10 seconds') //docs say 10 sec
 }
 
 function UUID() { //'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
@@ -34,7 +35,18 @@ module.exports = function JustLoginCore(db, options) {
 	})
 
 	var emitter = new EventEmitter()
- 	var expirer = new Expirer(options.sessionUnauthenticatedAfterMsInactivity, sessionExpirationDb)
+ 	var expirer = new Expirer(
+ 		options.sessionUnauthenticatedAfterMsInactivity,
+ 		sessionExpirationDb,
+ 		options.sessionTimeoutCheckIntervalMs
+ 	)
+ 	expirer.on('expire', function (sessionId) {
+ 		unauthenticate(sessionId, function (err) {
+ 			if (err) {
+ 				unauthenticate(sessionId, function () {}) //if error, try again
+ 			}
+ 		})
+ 	})
 
 	var dbSessionIdOpts = {
 		keyEncoding: 'utf8',
@@ -51,7 +63,7 @@ module.exports = function JustLoginCore(db, options) {
 	//isAuthenticated(session id, cb)
 	//calls the callback with an error if applicable and either null or a contact address if authenticated
 	function isAuthenticated(sessionId, cb) { //cb(err, addr)
-		sessionDb.get(sessionId, dbSessionIdOpts, function(err, address) {
+		sessionDb.get(sessionId, dbSessionIdOpts, function (err, address) {
 			if (err && !err.notFound) { //if bad error
 				cb(err)
 			} else if (err && err.notFound) { //if notFound error
@@ -63,7 +75,7 @@ module.exports = function JustLoginCore(db, options) {
 		})
 	}
 	
-	//beginAuthentication(session id, contact address)
+	//beginAuthentication(session id, contact address, cb)
 	//emits an event with a secret token and the contact address, so somebody can go send a message to that address
 	function beginAuthentication(sessionId, contactAddress, cb) {
 		if (typeof sessionId !== "string" || typeof contactAddress !== "string") {
@@ -95,7 +107,7 @@ module.exports = function JustLoginCore(db, options) {
 	//authenticate(secret token, cb)
 	//sets the appropriate session id to be authenticated with the contact address associated with that secret token.
 	//Calls the callback with and error and either null or the contact address depending on whether or not the login was successful (same as isAuthenticated)
-	function authenticate(token, cb) { //cb(err, addr)
+	function authenticate(token, cb) { //cb(err, credentials)
 		tokenDb.get(token, dbTokenOpts, function (err, credentials) { //credentials = { contact address, session id }
 			if (err && err.notFound) { //if did not find value
 				cb(new Error('No token found'))
@@ -122,7 +134,7 @@ module.exports = function JustLoginCore(db, options) {
 	
 	//unauthenticate(session id, cb)
 	//deletes the sessionid key from the database
-	function unauthenticate(sessionId, cb) {
+	function unauthenticate(sessionId, cb) { //cb(err)
 		expirer.forget(sessionId)
 		sessionDb.del(sessionId, dbSessionIdOpts, cb)
 	}
