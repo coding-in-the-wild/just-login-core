@@ -4,6 +4,8 @@ var sublevel = require('level-sublevel')
 var ms = require('ms')
 var xtend = require('xtend')
 var Expirer = require('expire-unused-keys')
+var lock = require('level-lock')
+
 var defaultOptions = {
 	tokenGenerator: UUID,
 	tokenTtl: ms('5 minutes'), //docs say 5 min
@@ -43,7 +45,9 @@ module.exports = function JustLoginCore(db, options) {
  	expirer.on('expire', function (sessionId) {
  		unauthenticate(sessionId, function (err) {
  			if (err) {
- 				unauthenticate(sessionId, function () {}) //if error, try again
+ 				process.nextTick(function () {
+ 					unauthenticate(sessionId, function () {}) //if error, try again
+ 				})
  			}
  		})
  	})
@@ -63,16 +67,23 @@ module.exports = function JustLoginCore(db, options) {
 	//isAuthenticated(session id, cb)
 	//calls the callback with an error if applicable and either null or a contact address if authenticated
 	function isAuthenticated(sessionId, cb) { //cb(err, addr)
-		sessionDb.get(sessionId, dbSessionIdOpts, function (err, address) {
-			if (err && !err.notFound) { //if bad error
-				cb(err)
-			} else if (err && err.notFound) { //if notFound error
-				cb(null, null)
-			} else { //if no error
-				expirer.touch(sessionId)
-				cb(null, address)
-			}
-		})
+		var unlockSession = lock(sessionDb, sessionId, 'r')
+		if (!unlockSession) {
+			cb(new Error('Session read error'))
+		} else {
+			sessionDb.get(sessionId, dbSessionIdOpts, function (err, address) {
+				unlockSession()
+				if (err && !err.notFound) { //if bad error
+					cb(err)
+				} else if (err && err.notFound) { //if notFound error
+					cb(null, null)
+				} else { //if no error
+					expirer.touch(sessionId)
+					cb(null, address)
+				}
+			})
+		}
+		
 	}
 	
 	//beginAuthentication(session id, contact address, cb)
@@ -88,18 +99,24 @@ module.exports = function JustLoginCore(db, options) {
 				sessionId: sessionId,
 				contactAddress: contactAddress
 			}
-			tokenDb.put(token, storeUnderToken, dbTokenOpts, function (err) {
-				if (err) {
-					cb(err)
-				} else {
-					var credentials = {
-						token: token,
-						contactAddress: contactAddress
+			var unlockToken = lock(tokenDb, token, 'w')
+			if (!unlockToken) {
+				cb(new Error('Token write error'))
+			} else {
+				tokenDb.put(token, storeUnderToken, dbTokenOpts, function (err) {
+					unlockToken()
+					if (err) {
+						cb(err)
+					} else {
+						var credentials = {
+							token: token,
+							contactAddress: contactAddress
+						}
+						emitter.emit('authentication initiated', credentials)
+						cb(null, credentials)
 					}
-					emitter.emit('authentication initiated', credentials)
-					cb(null, credentials)
-				}
-			})
+				})
+			}
 		}
 		
 	}
@@ -108,35 +125,65 @@ module.exports = function JustLoginCore(db, options) {
 	//sets the appropriate session id to be authenticated with the contact address associated with that secret token.
 	//Calls the callback with and error and either null or the contact address depending on whether or not the login was successful (same as isAuthenticated)
 	function authenticate(token, cb) { //cb(err, credentials)
-		tokenDb.get(token, dbTokenOpts, function (err, credentials) { //credentials = { contact address, session id }
-			if (err && err.notFound) { //if did not find value
-				cb(new Error('No token found'))
-			} else if (err) { //if error (not including the notFound error)
-				cb(err)
-			} else { //found value
-				sessionDb.put(credentials.sessionId, credentials.contactAddress, dbSessionIdOpts, function (err2) {
-					if (err2) {
-						cb(err2)
+		var unlockToken = lock(tokenDb, token, 'r')
+		if (!unlockToken) {
+			cb(new Error('Token read error'))
+		} else {
+			tokenDb.get(token, dbTokenOpts, function (err, credentials) { //credentials = { contact address, session id }
+				unlockToken()
+				if (err && err.notFound) { //if did not find value
+					cb(new Error('No token found'))
+				} else if (err) { //if error (not including the notFound error)
+					cb(err)
+				} else { //found value
+					var unlockSession = lock(sessionDb, credentials.sessionId, 'w')
+					if (!unlockSession) {
+						cb(new Error('Session write error'))
 					} else {
-						expirer.touch(credentials.sessionId)
-						tokenDb.del(token, dbTokenOpts, function (err) {
-							if (err) {
-								cb(err)
+						sessionDb.put(credentials.sessionId, credentials.contactAddress, dbSessionIdOpts, function (err2) {
+							unlockSession()
+							if (err2) {
+								cb(err2)
 							} else {
-								cb(null, credentials)
+								expirer.touch(credentials.sessionId)
+								var unlockToken = lock(tokenDb, token, 'w')
+								if (!unlockToken) {
+									cb(new Error('Token write error'))
+								} else {
+									tokenDb.del(token, dbTokenOpts, function (err) {
+										unlockToken()
+										if (err) {
+											cb(err)
+										} else {
+											cb(null, credentials)
+										}
+									})
+								}
 							}
 						})
 					}
-				})
-			}
-		})
+				}
+			})
+		}
 	}
 	
 	//unauthenticate(session id, cb)
 	//deletes the sessionid key from the database
 	function unauthenticate(sessionId, cb) { //cb(err)
 		expirer.forget(sessionId)
-		sessionDb.del(sessionId, dbSessionIdOpts, cb)
+		var unlockSession = lock(sessionDb, sessionId, 'w')
+		if (!unlockSession) {
+			cb && cb(new Error('Session write error'))
+		} else {
+			sessionDb.del(sessionId, dbSessionIdOpts, function (err) {
+				unlockSession()
+				if (err) {
+					cb && cb(err)
+				} else {
+					cb && cb(null)
+				}
+			})
+		}
 	}
 
 	emitter.isAuthenticated = isAuthenticated

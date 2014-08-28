@@ -27,10 +27,11 @@
     "test": "tap ./test/*.js"
   },
   "dependencies": {
-    "level-ttl": "^0.6.1",
+    "expire-unused-keys": "^1.0.0",
+    "level-lock": "^1.0.1",
     "level-sublevel": "^5.2.0",
+    "level-ttl": "^0.6.1",
     "ms": "^0.6.2",
-    "xtend": "^4.0.0",
-    "expire-unused-keys": "^1.0.0"
+    "xtend": "^4.0.0"
   }
 }
