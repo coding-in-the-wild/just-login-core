@@ -124,41 +124,38 @@ module.exports = function JustLoginCore(db, options) {
 	//authenticate(secret token, cb)
 	//sets the appropriate session id to be authenticated with the contact address associated with that secret token.
 	//Calls the callback with and error and either null or the contact address depending on whether or not the login was successful (same as isAuthenticated)
-	function authenticate(token, cb) { //cb(err, credentials)
-		var unlockToken = lock(tokenDb, token, 'r')
+	function authenticate(token, callback) { //cb(err, credentials)
+		var unlockToken = lock(tokenDb, token, 'rw')
 		if (!unlockToken) {
-			cb(new Error('Token read error'))
+			callback(new Error('Token read/write error'))
 		} else {
 			tokenDb.get(token, dbTokenOpts, function (err, credentials) { //credentials = { contact address, session id }
-				unlockToken()
-				if (err && err.notFound) { //if did not find value
-					cb(new Error('No token found'))
-				} else if (err) { //if error (not including the notFound error)
-					cb(err)
-				} else { //found value
-					var unlockSession = lock(sessionDb, credentials.sessionId, 'w')
-					if (!unlockSession) {
-						cb(new Error('Session write error'))
-					} else {
-						sessionDb.put(credentials.sessionId, credentials.contactAddress, dbSessionIdOpts, function (err2) {
-							unlockSession()
-							if (err2) {
-								cb(err2)
+				var unlockSession = lock(sessionDb, credentials.sessionId, 'w') //must create the lock after the token's get
+				if (!unlockSession) {
+					callback(new Error('Session write error'))
+				} else {
+					var cb = function (e, c) { //callback wrapper to unlock
+						unlockToken()
+						unlockSession()
+						callback(e, c)
+					}
+					if (err && err.notFound) { //if did not find value
+						cb(new Error('No token found'))
+					} else if (err) { //if error (not including the notFound error)
+						cb(err)
+					} else { //found value
+						sessionDb.put(credentials.sessionId, credentials.contactAddress, dbSessionIdOpts, function (err) {
+							if (err) {
+								cb(err)
 							} else {
 								expirer.touch(credentials.sessionId)
-								var unlockToken = lock(tokenDb, token, 'w')
-								if (!unlockToken) {
-									cb(new Error('Token write error'))
-								} else {
-									tokenDb.del(token, dbTokenOpts, function (err) {
-										unlockToken()
-										if (err) {
-											cb(err)
-										} else {
-											cb(null, credentials)
-										}
-									})
-								}
+								tokenDb.del(token, dbTokenOpts, function (err) {
+									if (err) {
+										cb(err)
+									} else {
+										cb(null, credentials)
+									}
+								})
 							}
 						})
 					}
@@ -170,18 +167,17 @@ module.exports = function JustLoginCore(db, options) {
 	//unauthenticate(session id, cb)
 	//deletes the sessionid key from the database
 	function unauthenticate(sessionId, cb) { //cb(err)
+		cb = cb || function (err) {
+			err && throw err
+		}
 		expirer.forget(sessionId)
 		var unlockSession = lock(sessionDb, sessionId, 'w')
 		if (!unlockSession) {
-			cb && cb(new Error('Session write error'))
+			cb(new Error('Session write error'))
 		} else {
 			sessionDb.del(sessionId, dbSessionIdOpts, function (err) {
 				unlockSession()
-				if (err) {
-					cb && cb(err)
-				} else {
-					cb && cb(null)
-				}
+				cb(err || null)
 			})
 		}
 	}
