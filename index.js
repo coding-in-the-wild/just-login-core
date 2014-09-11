@@ -125,25 +125,36 @@ module.exports = function JustLoginCore(db, options) {
 	//sets the appropriate session id to be authenticated with the contact address associated with that secret token.
 	//Calls the callback with and error and either null or the contact address depending on whether or not the login was successful (same as isAuthenticated)
 	function authenticate(token, callback) { //cb(err, credentials)
+		var cb = callback //Object.create doesn't work with functions
+
+		//var wrap = function (unlocker, callback) {
+		var wrap = function (unlock, cb) {
+			//var cb = callback //I think this is necessary
+			//var unlock = unlocker //I don't think this is necessary
+			return function () {
+				unlock()
+				cb.apply(null, arguments)
+			}
+		}
+
 		var unlockToken = lock(tokenDb, token, 'rw')
 		if (!unlockToken) {
-			callback(new Error('Token read/write error'))
+			cb(new Error('Token read/write error'))
 		} else {
+			cb = wrap(unlockToken, cb)
+
 			tokenDb.get(token, dbTokenOpts, function (err, credentials) { //credentials = { contact address, session id }
-				var unlockSession = lock(sessionDb, credentials.sessionId, 'w') //must create the lock after the token's get
-				if (!unlockSession) {
-					callback(new Error('Session write error'))
-				} else {
-					var cb = function (e, c) { //callback wrapper to unlock
-						unlockToken()
-						unlockSession()
-						callback(e, c)
-					}
-					if (err && err.notFound) { //if did not find value
-						cb(new Error('No token found'))
-					} else if (err) { //if error (not including the notFound error)
-						cb(err)
-					} else { //found value
+				if (err && err.notFound) { //if did not find value
+					cb(new Error('No token found'))
+				} else if (err) { //if error (not including the notFound error)
+					cb(err)
+				} else { //found value
+					var unlockSession = lock(sessionDb, credentials.sessionId, 'w') //must create the lock after the token's get
+					if (!unlockSession) {
+						cb(new Error('Session write error'))
+					} else {
+						cb = wrap(unlockSession, cb)
+
 						sessionDb.put(credentials.sessionId, credentials.contactAddress, dbSessionIdOpts, function (err) {
 							if (err) {
 								cb(err)
@@ -168,7 +179,9 @@ module.exports = function JustLoginCore(db, options) {
 	//deletes the sessionid key from the database
 	function unauthenticate(sessionId, cb) { //cb(err)
 		cb = cb || function (err) {
-			err && throw err
+			if (err){
+				throw err
+			}
 		}
 		expirer.forget(sessionId)
 		var unlockSession = lock(sessionDb, sessionId, 'w')
