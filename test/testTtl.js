@@ -5,7 +5,8 @@ var Levelup = require('level-mem')
 var ms = require('ms')
 
 var ttlMs = ms('3 seconds')
-var checkFrequency = ms('200 ms')
+var checkInterval = ms('200 ms')
+var checkWindow = ms('300ms')
 var fakeToken = 'hahalolthisisnotveryivenow'
 var fakeContactAddress = 'example@example.com'
 var fakeSessionId = 'whatever'
@@ -27,10 +28,11 @@ sessionUnauthenticatedAfterMsInactivity
 
 test('test for authenticate', function (t) {
 	var db = Levelup('newThang')
+	db = sublevel(db)
 	var jlc = JustLoginCore(db, {
 		tokenGenerator: dumbTokenGen,
 		tokenTtl: ttlMs,
-		tokenTtlCheckIntervalMs: checkFrequency
+		tokenTtlCheckIntervalMs: checkInterval
 	})
 	var dbTokenOpts = {
 		keyEncoding: 'utf8',
@@ -38,7 +40,7 @@ test('test for authenticate', function (t) {
 		ttl: ttlMs
 	}
 
-	db = sublevel(db).sublevel('token')
+	var tokenDb = db.sublevel('token')
 
 /*	
 	//THIS THROWS SOME WONKY ERROR IN LEVEL-TTL!!!
@@ -49,21 +51,21 @@ test('test for authenticate', function (t) {
 		//t.deepEqual(credentials, fakeTokenData, "credentials are correct in beginAuth()")
 	})
 */
-	db.put(fakeToken, fakeTokenData, dbTokenOpts, function (err) {
+	tokenDb.put(fakeToken, fakeTokenData, dbTokenOpts, function (err) {
 		t.notOk(err, "no error in db.put()")
 	})
 
 	setTimeout(function () {
-		db.get(fakeToken, dbTokenOpts, function (err, credentials) {
+		tokenDb.get(fakeToken, dbTokenOpts, function (err, credentials) {
 			t.notOk(err, "no error in 1st db.get()")
 			t.notOk(err && err.notFound, "no 'not found' error in 1st db.get()")
 			t.ok(credentials, "credentials come back in 1st db.get()")
 			t.deepEqual(credentials, fakeTokenData, "credentials are correct in 1st db.get()")
 		})
-	}, ttlMs-checkFrequency*2)
+	}, ttlMs-checkWindow)
 
 	setTimeout(function () {
-		db.get(fakeToken, dbTokenOpts, function (err, credentials) {
+		tokenDb.get(fakeToken, dbTokenOpts, function (err, credentials) {
 			//t.type(err, 'object', "err is an object")
 			//t.ok(err instanceof Error, "err is an error in 2nd db.get()")
 			t.ok(err, "error in 2nd db.get()")
@@ -74,7 +76,7 @@ test('test for authenticate', function (t) {
 
 			t.end()
 		})
-	}, ttlMs+checkFrequency*2)
+	}, ttlMs+checkWindow)
 	
 
 })

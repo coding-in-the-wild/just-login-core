@@ -14,25 +14,25 @@ test('test for unauthenticate', function(t) {
 
 	t.plan(11)
 	
-	jlc.unauthenticate(fakeSessionId, function (err0) { //not yet authenticated
-		t.notOk(err0, 'no error')
-		t.equal(typeof err0, "undefined", "error is undefined")
+	jlc.unauthenticate(fakeSessionId, function (err) { //not yet authenticated
+		t.notOk(err, 'no error')
+		t.type(err, "null", "error is null")
 	
-		levelup.put(fakeSessionId, fakeEmail, function (err1) { //authenticate
-			t.notOk(err1, 'no error')
+		levelup.put(fakeSessionId, fakeEmail, function (err) { //authenticate
+			t.notOk(err, 'no error')
 
-			levelup.get(fakeSessionId, function (err2, email) { //make sure 'put' worked
-				t.notOk(err2, 'no error')
+			levelup.get(fakeSessionId, function (err, email) { //make sure 'put' worked
+				t.notOk(err, 'no error')
 				t.equal(email, fakeEmail, 'emails match')
 
-				jlc.unauthenticate(fakeSessionId, function (err3) { //previously authenticated
-					t.notOk(err3, 'no error')
-					t.notOk(err3 && err3.notFound, 'no "not found" error')
-					t.equal(typeof err3, "undefined", "error is undefined")
+				jlc.unauthenticate(fakeSessionId, function (err) { //previously authenticated
+					t.notOk(err, 'no error')
+					t.notOk(err && err.notFound, 'no "not found" error')
+					t.type(err, "null", "error is null")
 
-					levelup.get(fakeSessionId, function (err4, email) { //make sure unauth worked
-						t.ok(err4, 'error')
-						t.ok(err4 && err4.notFound, '"not found" error')
+					levelup.get(fakeSessionId, function (err, email) { //make sure unauth worked
+						t.ok(err, 'error')
+						t.ok(err && err.notFound, '"not found" error')
 						t.notOk(email, 'no email came back')
 						t.end()
 					})

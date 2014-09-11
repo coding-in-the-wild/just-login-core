@@ -21,19 +21,19 @@ function UUID() { //'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
 		return v.toString(16)
 	})
 }
-
+//
 module.exports = function JustLoginCore(db, options) {
 	options = xtend(defaultOptions, options)
 
 	if (!db) {
 		throw new Error("Just Login Core requires a valid levelup database!")
 	}
-	db = sublevel(db)
+	db = sublevel(db) //It is ok to run this more than once (I think)
 	var sessionDb = db.sublevel('session')
 	var sessionExpirationDb = db.sublevel('expiration')
 	var tokenDb = db.sublevel('token')
 	tokenDb = ttl(tokenDb, {
-		checkFrequency: options.tokenTtlCheckFrequencyMs
+		checkFrequency: options.tokenTtlCheckIntervalMs
 	})
 
 	var emitter = new EventEmitter()
@@ -91,7 +91,7 @@ module.exports = function JustLoginCore(db, options) {
 	function beginAuthentication(sessionId, contactAddress, cb) {
 		if (typeof sessionId !== "string" || typeof contactAddress !== "string") {
 			process.nextTick(function () {
-				cb(new Error("Session id or contact address is not a string."))
+				cb(new Error("Session id and/or contact address is not a string."))
 			})
 		} else {
 			var token = options.tokenGenerator()
@@ -179,7 +179,7 @@ module.exports = function JustLoginCore(db, options) {
 	//deletes the sessionid key from the database
 	function unauthenticate(sessionId, cb) { //cb(err)
 		cb = cb || function (err) {
-			if (err){
+			if (err) {
 				throw err
 			}
 		}
@@ -190,7 +190,7 @@ module.exports = function JustLoginCore(db, options) {
 		} else {
 			sessionDb.del(sessionId, dbSessionIdOpts, function (err) {
 				unlockSession()
-				cb(err || null)
+				cb(err? err : null)
 			})
 		}
 	}
