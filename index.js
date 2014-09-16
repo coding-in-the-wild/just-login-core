@@ -122,8 +122,10 @@ module.exports = function JustLoginCore(db, options) {
 	}
 	
 	//authenticate(secret token, cb)
-	//sets the appropriate session id to be authenticated with the contact address associated with that secret token.
-	//Calls the callback with and error and either null or the contact address depending on whether or not the login was successful (same as isAuthenticated)
+	//sets the appropriate session id to be authenticated with the contact
+	//address associated with that secret token.
+	//Calls the callback with and error and either null or the contact address
+	//depending if the login was successful; same as isAuthenticated()
 	function authenticate(token, callback) { //cb(err, credentials)
 		var cb = callback //Object.create doesn't work with functions
 
