@@ -5,8 +5,8 @@ var Levelup = require('level-mem')
 var ms = require('ms')
 
 var ttlMs = ms('3 seconds')
-var checkInterval = ms('200 ms')
-var checkWindow = ms('300ms')
+var checkInterval = ms('100 ms')
+var checkWindow = ms('250ms')
 var fakeToken = 'hahalolthisisnotveryivenow'
 var fakeContactAddress = 'example@example.com'
 var fakeSessionId = 'whatever'
@@ -36,11 +36,17 @@ test('test for authenticate', function (t) {
 	})
 	var dbTokenOpts = {
 		keyEncoding: 'utf8',
-		valueEncoding: 'json',
-		ttl: ttlMs
+		valueEncoding: 'json'
 	}
 
 	var tokenDb = db.sublevel('token')
+	t.deepEqual(tokenDb, jlc.tokenDb)
+	tokenDb.on('put', function (key) {
+		console.log('\n\nk', key)
+	})
+	jlc.tokenDb.on('put', function (key) {
+		console.log('\n\nk2', key)
+	})
 
 /*	
 	//THIS THROWS SOME WONKY ERROR IN LEVEL-TTL!!!
@@ -50,13 +56,14 @@ test('test for authenticate', function (t) {
 		t.ok(credentials, "credentials come back in beginAuth()")
 		//t.deepEqual(credentials, fakeTokenData, "credentials are correct in beginAuth()")
 	})
-*/
+//*/
+//*
 	tokenDb.put(fakeToken, fakeTokenData, dbTokenOpts, function (err) {
 		t.notOk(err, "no error in db.put()")
 	})
-
+//*/
 	setTimeout(function () {
-		tokenDb.get(fakeToken, dbTokenOpts, function (err, credentials) {
+		jlc.tokenDb.get(fakeToken, dbTokenOpts, function (err, credentials) {
 			t.notOk(err, "no error in 1st db.get()")
 			t.notOk(err && err.notFound, "no 'not found' error in 1st db.get()")
 			t.ok(credentials, "credentials come back in 1st db.get()")
@@ -65,7 +72,7 @@ test('test for authenticate', function (t) {
 	}, ttlMs-checkWindow)
 
 	setTimeout(function () {
-		tokenDb.get(fakeToken, dbTokenOpts, function (err, credentials) {
+		jlc.tokenDb.get(fakeToken, dbTokenOpts, function (err, credentials) {
 			//t.type(err, 'object', "err is an object")
 			//t.ok(err instanceof Error, "err is an error in 2nd db.get()")
 			t.ok(err, "error in 2nd db.get()")

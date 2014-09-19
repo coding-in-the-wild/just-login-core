@@ -1,5 +1,5 @@
 var EventEmitter = require('events').EventEmitter
-var ttl = require('level-ttl')
+var ttl = require('tiny-level-ttl')
 var sublevel = require('level-sublevel')
 var ms = require('ms')
 var xtend = require('xtend')
@@ -23,17 +23,18 @@ function UUID() { //'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
 }
 //
 module.exports = function JustLoginCore(db, options) {
-	options = xtend(defaultOptions, options)
-
 	if (!db) {
 		throw new Error("Just Login Core requires a valid levelup database!")
 	}
 	db = sublevel(db) //It is ok to run this more than once (I think)
+	options = xtend(defaultOptions, options)
+
 	var sessionDb = db.sublevel('session')
-	var sessionExpirationDb = db.sublevel('expiration')
+	var sessionExpirationDb = sessionDb.sublevel('expiration')
 	var tokenDb = db.sublevel('token')
-	tokenDb = ttl(tokenDb, {
-		checkFrequency: options.tokenTtlCheckIntervalMs
+	ttl(tokenDb, {
+		ttl: options.tokenTtl,
+		checkInterval: options.tokenTtlCheckIntervalMs
 	})
 
 	var emitter = new EventEmitter()
@@ -58,8 +59,7 @@ module.exports = function JustLoginCore(db, options) {
 	}
 	var dbTokenOpts = {
 		keyEncoding: 'utf8',
-		valueEncoding: 'json',
-		ttl: options.tokenTtl
+		valueEncoding: 'json'
 	}
 	
 	// to implement the 'clicky clicky logout', we will need the token emitter to emit the session id also.
@@ -201,6 +201,8 @@ module.exports = function JustLoginCore(db, options) {
 	emitter.beginAuthentication = beginAuthentication
 	emitter.authenticate = authenticate
 	emitter.unauthenticate = unauthenticate
+
+	emitter.tokenDb = tokenDb
 
 	return emitter
 }
