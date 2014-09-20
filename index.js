@@ -202,8 +202,6 @@ module.exports = function JustLoginCore(db, options) {
 	emitter.authenticate = authenticate
 	emitter.unauthenticate = unauthenticate
 
-	emitter.tokenDb = tokenDb
-
 	return emitter
 }
 
