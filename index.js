@@ -3,7 +3,6 @@ var ttl = require('tiny-level-ttl')
 var sublevel = require('level-sublevel')
 var ms = require('ms')
 var xtend = require('xtend')
-var Expirer = require('expire-unused-keys')
 var lock = require('level-lock')
 
 var defaultOptions = {
@@ -30,7 +29,10 @@ module.exports = function JustLoginCore(db, options) {
 	options = xtend(defaultOptions, options)
 
 	var sessionDb = db.sublevel('session')
-	var sessionExpirationDb = sessionDb.sublevel('expiration')
+	ttl(sessionDb, {
+		ttl: options.sessionUnauthenticatedAfterMsInactivity,
+		checkInterval: options.sessionTimeoutCheckIntervalMs
+	})
 	var tokenDb = db.sublevel('token')
 	ttl(tokenDb, {
 		ttl: options.tokenTtl,
@@ -38,20 +40,6 @@ module.exports = function JustLoginCore(db, options) {
 	})
 
 	var emitter = new EventEmitter()
- 	var expirer = new Expirer(
- 		options.sessionUnauthenticatedAfterMsInactivity,
- 		sessionExpirationDb,
- 		options.sessionTimeoutCheckIntervalMs
- 	)
- 	expirer.on('expire', function (sessionId) {
- 		unauthenticate(sessionId, function (err) {
- 			if (err) {
- 				process.nextTick(function () {
- 					unauthenticate(sessionId, function () {}) //if error, try again
- 				})
- 			}
- 		})
- 	})
 
 	var dbSessionIdOpts = {
 		keyEncoding: 'utf8',
@@ -78,7 +66,7 @@ module.exports = function JustLoginCore(db, options) {
 				} else if (err && err.notFound) { //if notFound error
 					cb(null, null)
 				} else { //if no error
-					expirer.touch(sessionId)
+					sessionDb.refreshTtl(sessionId)
 					cb(null, address)
 				}
 			})
@@ -161,7 +149,7 @@ module.exports = function JustLoginCore(db, options) {
 							if (err) {
 								cb(err)
 							} else {
-								expirer.touch(credentials.sessionId)
+								sessionDb.refreshTtl(credentials.sessionId)
 								tokenDb.del(token, dbTokenOpts, function (err) {
 									if (err) {
 										cb(err)
@@ -185,7 +173,6 @@ module.exports = function JustLoginCore(db, options) {
 				throw err
 			}
 		}
-		expirer.forget(sessionId)
 		var unlockSession = lock(sessionDb, sessionId, 'w')
 		if (!unlockSession) {
 			cb(new Error('Session write error'))
