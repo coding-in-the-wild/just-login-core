@@ -19,7 +19,9 @@ Install with npm:
 
 Require:
 
-	var Jlc = require('just-login-core')
+```js
+var Jlc = require('just-login-core')
+```
 	
 ##Jlc(db[, options])
 
