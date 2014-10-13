@@ -1,5 +1,5 @@
 var test = require('tap').test
-var sublevel = require('level-sublevel')
+var spaces = require('level-spaces')
 var Levelup = require('level-mem')
 var ms = require('ms')
 
@@ -17,7 +17,6 @@ var fakeTokenData = {
 
 test('test for authenticate', function (t) {
 	var db = Levelup('newThang')
-	db = sublevel(db)
 
 	//NO USING THESE VARS vvv (faking the just-login-core below...)
 	var options = {
@@ -25,7 +24,7 @@ test('test for authenticate', function (t) {
 		tokenTtlCheckIntervalMs: checkInterval
 	}
 	var ttl = require('tiny-level-ttl')
-	var _JLCtokenDb = db.sublevel('token')
+	var _JLCtokenDb = spaces(db, 'token')
 	ttl(_JLCtokenDb, {
 		ttl: options.tokenTtl,
 		checkInterval: options.tokenTtlCheckIntervalMs
@@ -40,7 +39,7 @@ test('test for authenticate', function (t) {
 		valueEncoding: 'json'
 	}
 
-	var tokenDb = db.sublevel('token')
+	var tokenDb = spaces(db, 'token')
 
 	tokenDb.put(fakeToken, fakeTokenData, dbTokenOpts, function (err) {
 		t.notOk(err, "no error in db.put()")

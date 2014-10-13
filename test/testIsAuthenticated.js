@@ -1,5 +1,5 @@
 var test = require('tap').test
-var sublevel = require('level-sublevel')
+var spaces = require('level-spaces')
 var JustLoginCore = require('../index.js')
 var Levelup = require('level-mem')
 
@@ -10,7 +10,7 @@ var fakeAddress = "example@example.com"
 test('test for isAuthenticated', function(t) {
 	var db = Levelup('newThang')
 	var jlc = JustLoginCore(db)
-	db = sublevel(db).sublevel('session')
+	db = spaces(db, 'session')
 	
 	t.plan(6)
 	

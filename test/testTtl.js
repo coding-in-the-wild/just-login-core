@@ -1,5 +1,5 @@
 var test = require('tap').test
-var sublevel = require('level-sublevel')
+var spaces = require('level-spaces')
 var JustLoginCore = require('../index.js')
 var Levelup = require('level-mem')
 var ms = require('ms')
@@ -21,7 +21,6 @@ function dumbTokenGen() {
 
 test('test for authenticate', function (t) {
 	var db = Levelup('newThang')
-	db = sublevel(db)
 	var jlc = JustLoginCore(db, {
 		tokenGenerator: dumbTokenGen,
 		tokenTtl: ttlMs,
@@ -39,7 +38,7 @@ test('test for authenticate', function (t) {
 		t.ok(credentials, "credentials come back in beginAuth()")
 	})
 
-	var tokenDb = db.sublevel('token')
+	var tokenDb = spaces(db, 'token')
 
 	//tokenDb.put(fakeToken, fakeTokenData, dbTokenOpts, function (err) {
 	//	t.notOk(err, "no error in db.put()")
