@@ -28,24 +28,24 @@ test('test for the entire just-login core', function (t) {
 			jlc.isAuthenticated(expected.sessionId, function (err, address) { //Not authenticated yet
 				t.notOk(err, 'no error for isAuthenticated 2')
 				t.notOk(address, 'no value came back')
-			})
 			
-			jlc.authenticate(credentials.token, function (err, credentials) {
-				t.notOk(err, 'no error for authenticate')
-				t.ok(credentials, 'got a value back')
-				t.deepEqual(credentials, expected, 'got back correct value')
-				
-				jlc.isAuthenticated(expected.sessionId, function (err, address) { //Authenticated now
-					t.notOk(err, 'no error for isAuthenticated 3')
-					t.equal(address, expected.contactAddress, 'got address back')
+				jlc.authenticate(credentials.token, function (err, credentials) {
+					t.notOk(err, 'no error for authenticate')
+					t.ok(credentials, 'got a value back')
+					t.deepEqual(credentials, expected, 'got back correct value')
+					
+					jlc.isAuthenticated(expected.sessionId, function (err, address) { //Authenticated now
+						t.notOk(err, 'no error for isAuthenticated 3')
+						t.equal(address, expected.contactAddress, 'got address back')
 
-					jlc.unauthenticate(expected.sessionId, function (err) {
-						t.notOk(err)
+						jlc.unauthenticate(expected.sessionId, function (err) {
+							t.notOk(err)
 
-						jlc.isAuthenticated(expected.sessionId, function (err, address) { //Not authenticated yet
-							t.notOk(err, 'no error for isAuthenticated 2')
-							t.notOk(address, 'no value came back')
-							t.end()
+							jlc.isAuthenticated(expected.sessionId, function (err, address) { //Not authenticated yet
+								t.notOk(err, 'no error for isAuthenticated 2')
+								t.notOk(address, 'no value came back')
+								t.end()
+							})
 						})
 					})
 				})
