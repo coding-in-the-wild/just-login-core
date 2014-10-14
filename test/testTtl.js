@@ -46,6 +46,9 @@ test('test for authenticate', function (t) {
 
 	setTimeout(function () {
 		tokenDb.get(fakeToken, dbTokenOpts, function (err, credentials) {
+			if (typeof credentials === 'string') {
+				credentials = JSON.parse(credentials)
+			}
 			t.notOk(err, "no error in 1st db.get()")
 			t.notOk(err && err.notFound, "no 'not found' error in 1st db.get()")
 			t.ok(credentials, "credentials come back in 1st db.get()")

@@ -25,15 +25,6 @@ module.exports = function JustLoginCore(sessionDb, sessionExpireDb, tokenDb, tok
 			}
 		})
 	})
-
-	/*var dbSessionIdOpts = {
-		keyEncoding: 'utf8',
-		valueEncoding: 'utf8'
-	}
-	var dbTokenOpts = {
-		keyEncoding: 'utf8',
-		valueEncoding: 'json'
-	}*/
 	
 	// to implement the 'clicky clicky logout', we will need the token emitter to emit the session id also.
 	
@@ -44,7 +35,7 @@ module.exports = function JustLoginCore(sessionDb, sessionExpireDb, tokenDb, tok
 		if (!unlockSession) {
 			cb(new Error('Session read error'))
 		} else {
-			sessionDb.get(sessionId, /*dbSessionIdOpts,*/ function (err, address) {
+			sessionDb.get(sessionId, function (err, address) {
 				unlockSession()
 				if (err && !err.notFound) { //if bad error
 					cb(err)
@@ -76,7 +67,7 @@ module.exports = function JustLoginCore(sessionDb, sessionExpireDb, tokenDb, tok
 			if (!unlockToken) {
 				cb(new Error('Token write error'))
 			} else {
-				tokenDb.put(token, storeUnderToken, /*dbTokenOpts,*/ function (err) {
+				tokenDb.put(token, storeUnderToken, function (err) {
 					unlockToken()
 					if (err) {
 						cb(err)
@@ -115,24 +106,34 @@ module.exports = function JustLoginCore(sessionDb, sessionExpireDb, tokenDb, tok
 		} else {
 			cb = wrap(unlockToken, cb)
 
-			tokenDb.get(token, /*dbTokenOpts,*/ function (err, credentials) { //credentials = { contact address, session id }
-				if (err && err.notFound) { //if did not find value
-					cb(new Error('No token found'))
+			tokenDb.get(token, {valueEncoding: 'json'}, function (err, credentials) { //credentials = { contact address, session id }
+				if (err && err.notFound || !credentials) { //if did not find credentials
+					cb(new Error('No valid token found'))
 				} else if (err) { //if error (not including the notFound error)
 					cb(err)
 				} else { //found value
+					if (typeof credentials === "string") {
+						try {
+							credentials = JSON.parse(credentials)
+						} catch (err) {
+							cb(err)
+						}
+					}
 					var unlockSession = lock(sessionDb, credentials.sessionId, 'w') //must create the lock after the token's get
 					if (!unlockSession) {
 						cb(new Error('Session write error'))
 					} else {
 						cb = wrap(unlockSession, cb)
 
-						sessionDb.put(credentials.sessionId, credentials.contactAddress, /*dbSessionIdOpts,*/ function (err) {
+						sessionDb.put(credentials.sessionId, credentials.contactAddress, function (err) {
 							if (err) {
+								console.error(err)
+								console.log(credentials.sessionId)
+								console.log(credentials.contactAddress)
 								cb(err)
 							} else {
 								expirer.touch(credentials.sessionId)
-								tokenDb.del(token, /*dbTokenOpts,*/ function (err) {
+								tokenDb.del(token, function (err) {
 									if (err) {
 										cb(err)
 									} else {
@@ -160,7 +161,7 @@ module.exports = function JustLoginCore(sessionDb, sessionExpireDb, tokenDb, tok
 		if (!unlockSession) {
 			cb(new Error('Session write error'))
 		} else {
-			sessionDb.del(sessionId, /*dbSessionIdOpts,*/ function (err) {
+			sessionDb.del(sessionId, function (err) {
 				unlockSession()
 				cb(err? err : null)
 			})
