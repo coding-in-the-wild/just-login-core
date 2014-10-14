@@ -1,6 +1,6 @@
 {
   "name": "just-login-core",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "main": "./index.js",
   "author": {
     "name": "ArtskydJ",
@@ -27,6 +27,7 @@
     "test": "tap ./test/*.js"
   },
   "dependencies": {
+    "expire-unused-keys": "^1.0.2",
     "level-lock": "^1.0.1",
     "level-spaces": "^1.1.1",
     "ms": "^0.6.2",
