@@ -21,13 +21,12 @@ function wrap(unlock, cb) { //wrap any function to a callback, used here with le
 	}
 }
 
-module.exports = function JustLoginCore(sessionDb, sessionExpireDb, tokenDb, tokenExpireDb, options) {
+module.exports = function JustLoginCore(sessionDb, sessionExpireDb, tokenDb, options) {
 	var emitter = new EventEmitter()
 
 	ttl(tokenDb, { //watch for 'put's
 		ttl: options.tokenTtl,
-		checkInterval: options.tokenTtlCheckIntervalMs,
-		db: tokenExpireDb //store time records here
+		checkInterval: options.tokenTtlCheckIntervalMs
 	})
 	var expirer = new Expirer(
 		options.sessionUnauthenticatedAfterMsInactivity,

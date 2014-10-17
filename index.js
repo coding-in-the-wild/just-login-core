@@ -27,8 +27,7 @@ module.exports = function JustLoginCore(db, options) {
 	var sessionDb = spaces(db, 'session')
 	var sessionExpirationDb = spaces(db, 'session-expiration')
 	var tokenDb = spaces(db, 'token', {valueEncoding: 'json'})
-	var tokenExpirationDb = spaces(db, 'token-ttl')
 	options = xtend(defaultOptions, options)
 
-	return core(sessionDb, sessionExpirationDb, tokenDb, tokenExpirationDb, options)
+	return core(sessionDb, sessionExpirationDb, tokenDb, options)
 }
