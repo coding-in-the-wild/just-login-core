@@ -24,12 +24,12 @@ function makeResultAnObject(cb) {
 	}
 }
 
-function wrap(unlock, cb) { //wrap any function to a callback, used here with level-lock's `unlock` functions
+function wrap(fn, cb) { //wrap any function to a callback, used here with level-lock's `unlock` functions
 	return function () {
-		if (typeof unlock === 'function') {
-			unlock()
-		} else if (typeof unlock === 'object' && Array.isArray(unlock)) {
-			unlock.forEach(function (fn) { fn() }) //Function.call
+		if (typeof fn === 'function') {
+			fn()
+		} else if (Array.isArray(fn)) {
+			fn.forEach(function (func) { func() })
 		}
 		cb.apply(null, arguments)
 	}
@@ -50,8 +50,8 @@ function createNewSession(sessionDb, tokenDb, expirer, credentials, token, cb) {
 	}
 }
 
-function createToken(sessionId, contactAddress, cb) {
-	var token = options.tokenGenerator()
+function createToken(tokenGenerator, tokenDb, sessionId, contactAddress, cb) {
+	var token = tokenGenerator()
 	var storeUnderToken = {
 		sessionId: sessionId,
 		contactAddress: contactAddress
@@ -110,7 +110,7 @@ module.exports = function JustLoginCore(sessionDb, sessionExpireDb, tokenDb, opt
 				cb(new Error("Session id and/or contact address is not a string."))
 			})
 		} else {
-			createToken(sessionId, contactAddress, cbIfErr(function (err, token) {
+			createToken(options.tokenGenerator, tokenDb, sessionId, contactAddress, cbIfErr(cb, function (err, token) {
 				var credentials = {
 					token: token,
 					contactAddress: contactAddress
@@ -126,20 +126,24 @@ module.exports = function JustLoginCore(sessionDb, sessionExpireDb, tokenDb, opt
 	//Calls the callback with and error and either null or the contact address
 	//depending if the login was successful; same as isAuthenticated()
 	function authenticate(token, cb) { //cb(err, credentials)
-		var unlockToken = lock(tokenDb, token, 'rw')
-		if (!unlockToken) {
-			cb(new Error('Token read/write error'))
+		if (!token) {
+			cb(new Error('No token found'))
 		} else {
-			cb = wrap(unlockToken, cb)
-			function handleCredentials(err, credentials) { //credentials = { contact address, session id }
-				if ((err && err.notFound) || !credentials) { //if did not find credentials
-					cb(new Error('No valid token found'))
-				} else { //found value
-					createNewSession(sessionDb, tokenDb, expirer, credentials, token, cb)
+			var unlockToken = lock(tokenDb, token, 'rw')
+			if (!unlockToken) {
+				cb(new Error('Token read/write error'))
+			} else {
+				cb = wrap(unlockToken, cb)
+				function handleCredentials(err, credentials) { //credentials = { contact address, session id }
+					if ((err && err.notFound) || !credentials) { //if did not find credentials
+						cb(new Error('No valid token found'))
+					} else { //found value
+						createNewSession(sessionDb, tokenDb, expirer, credentials, token, cb)
+					}
 				}
-			}
 
-			tokenDb.get(token, cbIfErr(cb, makeResultAnObject(handleCredentials)))
+				tokenDb.get(token, cbIfErr(cb, makeResultAnObject(handleCredentials)))
+			}
 		}
 	}
 	
