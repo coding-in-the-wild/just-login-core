@@ -35,13 +35,13 @@ function wrap(fn, cb) { //wrap any function to a callback, used here with level-
 	}
 }
 
-function createNewSession(sessionDb, tokenDb, expirer, credentials, token, cb) {
-	var unlockSession = lock(sessionDb, credentials.sessionId, 'w') //must create the lock after the token's get
+function createNewSession(authedSessionsDb, tokenDb, expirer, credentials, token, cb) {
+	var unlockSession = lock(authedSessionsDb, credentials.sessionId, 'w') //must create the lock after the token's get
 	if (!unlockSession) {
 		cb(new Error('Session write error'))
 	} else {
 		cb = wrap(unlockSession, cb)
-		sessionDb.put(credentials.sessionId, credentials.contactAddress, cbIfErr(cb, function () {
+		authedSessionsDb.put(credentials.sessionId, credentials.contactAddress, cbIfErr(cb, function () {
 			expirer.touch(credentials.sessionId)
 			tokenDb.del(token, cbIfErr(cb, function () {
 				cb(null, credentials)
@@ -67,7 +67,7 @@ function createToken(tokenGenerator, tokenDb, sessionId, contactAddress, cb) {
 	}
 }
 
-module.exports = function JustLoginCore(sessionDb, sessionExpireDb, tokenDb, options) {
+module.exports = function JustLoginCore(authedSessionsDb, authedSessionsExpirationDb, tokenDb, options) {
 	var emitter = new EventEmitter()
 
 	ttl(tokenDb, { //watch for 'put's
@@ -76,7 +76,7 @@ module.exports = function JustLoginCore(sessionDb, sessionExpireDb, tokenDb, opt
 	})
 	var expirer = new Expirer(
 		options.sessionUnauthenticatedAfterMsInactivity,
-		sessionExpireDb, //store time records here
+		authedSessionsExpirationDb, //store time records here
 		options.sessionTimeoutCheckIntervalMs
 	)
 	expirer.on('expire', function (sessionId) {
@@ -87,12 +87,12 @@ module.exports = function JustLoginCore(sessionDb, sessionExpireDb, tokenDb, opt
 	
 	//calls the callback with an error if applicable and either null or a contact address if authenticated
 	function isAuthenticated(sessionId, cb) { //cb(err, addr)
-		var unlockSession = lock(sessionDb, sessionId, 'r')
+		var unlockSession = lock(authedSessionsDb, sessionId, 'r')
 		if (!unlockSession) {
 			cb(new Error('Session read error'))
 		} else {
 			cb = wrap(unlockSession, cb)
-			sessionDb.get(sessionId, cbIfErr(cb, function (err, address) {
+			authedSessionsDb.get(sessionId, cbIfErr(cb, function (err, address) {
 				if (err && err.notFound) { //if notFound error
 					cb(null, null)
 				} else { //if no error
@@ -138,7 +138,7 @@ module.exports = function JustLoginCore(sessionDb, sessionExpireDb, tokenDb, opt
 					if ((err && err.notFound) || !credentials) { //if did not find credentials
 						cb(new Error('No valid token found'))
 					} else { //found value
-						createNewSession(sessionDb, tokenDb, expirer, credentials, token, cb)
+						createNewSession(authedSessionsDb, tokenDb, expirer, credentials, token, cb)
 					}
 				}
 
@@ -151,11 +151,11 @@ module.exports = function JustLoginCore(sessionDb, sessionExpireDb, tokenDb, opt
 	function unauthenticate(sessionId, cb) { //cb(err)
 		cb = cb || function () {}
 		expirer.forget(sessionId)
-		var unlockSession = lock(sessionDb, sessionId, 'w')
+		var unlockSession = lock(authedSessionsDb, sessionId, 'w')
 		if (!unlockSession) {
 			cb(new Error('Session write error'))
 		} else {
-			sessionDb.del(sessionId, function (err) {
+			authedSessionsDb.del(sessionId, function (err) {
 				unlockSession()
 				cb(err? err : null)
 			})

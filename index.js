@@ -24,10 +24,10 @@ module.exports = function JustLoginCore(db, options) {
 		throw new Error("Just Login Core requires a valid levelup database!")
 	}
 
-	var sessionDb = spaces(db, 'session')
-	var sessionExpirationDb = spaces(db, 'session-expiration')
+	var authedSessionsDb = spaces(db, 'session')
+	var authedSessionsExpirationDb = spaces(db, 'session-expiration')
 	var tokenDb = spaces(db, 'token', {valueEncoding: 'json'})
 	options = xtend(defaultOptions, options)
 
-	return core(sessionDb, sessionExpirationDb, tokenDb, options)
+	return core(authedSessionsDb, authedSessionsExpirationDb, tokenDb, options)
 }
