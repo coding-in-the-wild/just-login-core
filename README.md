@@ -58,29 +58,21 @@ Checks if a user is authenticated. (Logged in.)
 	- `err` is null if there was no error, and is an Error object if there was an error.
 	- `contactAddress` is null is the user is not authenticated, and is a string of their contact address if they are authenticated.
 
-Example of an authenticated user:
+Example:
 
 ```js
-core.isAuthenticated("previouslyLoggedInSessionId", function(err, contactAddress) {
+core.isAuthenticated("whatever the session id is", function(err, contactAddress) {
 	if (!err) {
-		console.log(contactAddress) //logs: "fake@example.com"
-	}
-})
-```
-
-Example of an unauthenticated user:
-
-```js
-core.isAuthenticated("notPreviouslyLoggedInSessionId", function(err, contactAddress) {
-	if (!err) {
-		console.log(contactAddress) //logs: "null"
+		console.log(contactAddress)
+		//if not logged in, logs "null"
+		//if logged in, logs: "fake@example.com"
 	}
 })
 ```
 
 ##core.beginAuthentication(sessionId, contactAddress, cb)
 
-Starts the authentication process by emitting the 'authentication initiated' event with a secret token and the contact address.
+Starts the authentication process by emitting the 'authentication initiated' event with a token and the contact address.
 
 Something else must listen for the event, and send a message to the user. See [Events](#events) for more information.
 
@@ -95,7 +87,7 @@ Something else must listen for the event, and send a message to the user. See [E
 Example:
 
 ```js
-core.beginAuthentication("wantToLogInSessionId", "fake@example.com", function (err, authReqInfo) {
+core.beginAuthentication("whatever the session id is", "fake@example.com", function (err, authReqInfo) {
 	if (!err) {
 		console.log(authReqInfo.token) //logs the token
 		console.log(authReqInfo.contactAddress) //logs: "fake@example.com"
@@ -105,29 +97,21 @@ core.beginAuthentication("wantToLogInSessionId", "fake@example.com", function (e
 
 ##core.authenticate(token, cb)
 
-Sets the appropriate session id to be authenticated with the contact address associated with that secret token.
+Sets the appropriate session id to be authenticated with the contact address associated with that token.
 
 - `token` is a string of the token that is trying to get authenticated.
 - `cb` is a function with the following arguments: (Same as [`core.isAuthenticated()`](#coreisauthenticatedsessionid-cb).)
 	- `err` is null if there was no error, and is an Error object if there was an error.
 	- `contactAddress` is null is the user is not authenticated, and is a string of their contact address if they are authenticated.
 
-If the token is invalid:
+Example:
 
 ```js
-core.authenticate("tokenFromEmail", function(err, contactAddress) {
-	if (!err) {
-		console.log(contactAddress) //logs: "null"
-	}
-})
-```
-
-If the token is valid:
-
-```js
-core.authenticate("tokenFromEmail", function(err, contactAddress) {
-	if (!err) {
-		console.log(contactAddress) //logs: "fake@example.com"
+core.authenticate("the token from the email", function(err, contactAddress) {
+	if (!err && contactAddress) {
+		console.log(contactAddress + 'is now logged in! Congratulations!')
+	} else {
+		console.log('Sorry, for some reason you are not logged in.')
 	}
 })
 ```
