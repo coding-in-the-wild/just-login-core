@@ -4,9 +4,9 @@ var JustLoginCore = require('../index.js')
 var Levelup = require('level-mem')
 var ms = require('ms')
 
-var ttlMs = ms('3 seconds')
-var checkInterval = ms('100 ms')
-var checkWindow = ms('250ms')
+var ttlMs = ms('200 ms')
+var checkInterval = ms('50 ms')
+var checkWindow = ms('75 ms')
 var fakeToken = 'hahalolthisisnotveryivenow'
 var fakeContactAddress = 'example@example.com'
 var fakeSessionId = 'whatever'
@@ -70,5 +70,4 @@ test('test for authenticate', function (t) {
 		})
 	}, ttlMs+checkWindow)
 	
-
 })
