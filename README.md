@@ -122,7 +122,7 @@ Sets the appropriate session id to be unauthenticated.
 
 - `token` is a string of the token that is trying to get authenticated.
 - `cb` is a function with the following argument:
-	- `err` is undefined if there was no error, and is an Error object if there was an error.
+	- `err` is null if there was no error, and is an Error object if there was an error.
 
 Example:
 
