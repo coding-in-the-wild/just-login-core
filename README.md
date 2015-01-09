@@ -3,33 +3,24 @@ just-login-core
 
 This module handles the authentication at the database level for other just login modules.
 
-- [Startup](#startup)
-- [Core(db[, options])](#coredb-options)
-- [core.isAuthenticated(sessionId, cb)](#coreisauthenticatedsessionid-cb)
-- [core.beginAuthentication(sessionId, contactAddress, cb)](#corebeginauthenticationsessionid-contactaddress-cb)
-- [core.authenticate(token, cb)](#coreauthenticatetoken-cb)
-- [core.unauthenticate(sessionId, cb)](#coreunauthenticatesessionid-cb)
-- [Events](#events)
+##Getting Started
 
-##Startup
-
-Install with npm:
+Install with [npm](http://nodejs.org):
 
 	npm install just-login-core
 
 Require:
-
 ```js
 var Core = require('just-login-core')
 ```
-	
+
 ##Core(db[, options])
 
 - `db` is expecting a levelup database.
 - `options` is an object that holds the (**gasp**) options!
 	- `tokenGenerator` is expecting a function that returns an unique string each time it is called. This is used for token generation. Defaults to a UUID generator.
 	- `tokenTtl` is a number in milliseconds of a token's Time To Live (TTL). Defaults to 5 minutes.
-	- `tokenTtlCheckIntervalMs` is a number in milliseconds of the ttl's check interval. (See [node-level-ttl](https://github.com/rvagg/node-level-ttl) and Ctrl+F (find/search) 'checkFrequency' for more details.) Defaults to 10 seconds.
+	- `tokenTtlCheckIntervalMs` is a number in milliseconds of the ttl's check interval. (See [tiny-level-ttl](https://github.com/ArtskydJ/tiny-level-ttl#ttldb-opts), `checkInterval` for more details.) Defaults to 10 seconds`.
 	- `sessionUnauthenticatedAfterMsInactivity` is a number in milliseconds of a session's period of inactivity before they are unauthenticated. If the user does not call `isAuthenticated()` within that time period, thy will be unauthenticated. (Logged out.) Defaults to 1 week.
 	- `sessionTimeoutCheckIntervalMs` is a number in milliseconds of the session's timeout's check interval. (See [expire-unused-keys -> checkIntervalMs](https://github.com/tehshrike/expire-unused-keys#timeoutms-db-checkintervalms).) Defaults to 10 seconds.
 
@@ -122,7 +113,7 @@ Sets the appropriate session id to be unauthenticated.
 
 - `token` is a string of the token that is trying to get authenticated.
 - `cb` is a function with the following argument:
-	- `err` is undefined if there was no error, and is an Error object if there was an error.
+	- `err` is null if there was no error, and is an Error object if there was an error.
 
 Example:
 
