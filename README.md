@@ -20,16 +20,16 @@ var Core = require('just-login-core')
 - `options` is an object that holds the (**gasp**) options!
 	- `tokenGenerator` is expecting a function that returns an unique string each time it is called. This is used for token generation. Defaults to a UUID generator.
 	- `tokenTtl` is a number in milliseconds of a token's Time To Live (TTL). Defaults to 5 minutes.
-	- `tokenTtlCheckIntervalMs` is a number in milliseconds of the ttl's check interval. (See [tiny-level-ttl](https://github.com/ArtskydJ/tiny-level-ttl#ttldb-opts), `checkInterval` for more details.) Defaults to 10 seconds`.
+	- `tokenTtlCheckIntervalMs` is a number in milliseconds of the ttl's check interval. (See [tiny-level-ttl][tinyttl], `checkInterval` for more details.) Defaults to 10 seconds`.
 	- `sessionUnauthenticatedAfterMsInactivity` is a number in milliseconds of a session's period of inactivity before they are unauthenticated. If the user does not call `isAuthenticated()` within that time period, thy will be unauthenticated. (Logged out.) Defaults to 1 week.
-	- `sessionTimeoutCheckIntervalMs` is a number in milliseconds of the session's timeout's check interval. (See [expire-unused-keys -> checkIntervalMs](https://github.com/tehshrike/expire-unused-keys#timeoutms-db-checkintervalms).) Defaults to 10 seconds.
+	- `sessionTimeoutCheckIntervalMs` is a number in milliseconds of the session's timeout's check interval. (See [expireUnusedKeys({checkIntervalMs})][checkint].) Defaults to 10 seconds.
 
 `Core()` constructs an object that is an event emitter, (see [Events](#events)) and has the following methods:
 
-- [`core.isAuthenticated(sessionId, cb)`](#coreisauthenticatedsessionid-cb)
-- [`core.beginAuthentication(sessionId, contactAddress, cb)`](#corebeginauthenticationsessionid-contactaddress-cb)
-- [`core.authenticate(token, cb)`](#coreauthenticatetoken-cb)
-- [`core.unauthenticate(sessionId, cb)`](#coreunauthenticatesessionid-cb)
+- [`core.isAuthenticated(sessionId, cb)`][isauthed]
+- [`core.beginAuthentication(sessionId, contactAddress, cb)`][beginauth]
+- [`core.authenticate(token, cb)`][auth]
+- [`core.unauthenticate(sessionId, cb)`][unauth]
 
 Example:
 
@@ -46,8 +46,8 @@ Checks if a user is authenticated. (Logged in.)
 
 - `sessionId` is a string of the session id in question.
 - `cb` is a function with the following arguments:
-	- `err` is null if there was no error, and is an Error object if there was an error.
-	- `contactAddress` is null is the user is not authenticated, and is a string of their contact address if they are authenticated.
+	- `err` is `null` if there was no error, and is an `Error` object if there was an error.
+	- `contactAddress` is `null` is the user is not authenticated, and is a string of their contact address if they are authenticated.
 
 Example:
 
@@ -70,7 +70,7 @@ Something else must listen for the event, and send a message to the user. See [E
 - `sessionId` is a string of the session id that is trying to get authenticated.
 - `contactAddress` is string of the user's contact info, (usually an email address).
 - `cb` is a function with the following arguments:
-	- `err` is null if there is no error, and is an Error object is there was an error.
+	- `err` is `null` if there is no error, and is an `Error` object is there was an error.
 	- `authReqInfo` is an object with the authentication request information. The object is identical to the object emitted in the event, with the following properties:
 		- `token` is a string of the token.
 		- `contactAddress` is a string with the contact address.
@@ -91,8 +91,8 @@ core.beginAuthentication("whatever the session id is", "fake@example.com", funct
 Sets the appropriate session id to be authenticated with the contact address associated with that token.
 
 - `token` is a string of the token that is trying to get authenticated.
-- `cb` is a function with the following arguments: (Same as [`core.isAuthenticated()`](#coreisauthenticatedsessionid-cb).)
-	- `err` is null if there was no error, and is an Error object if there was an error.
+- `cb` is a function with the following arguments: (Same as [`core.isAuthenticated()`][isauthed].)
+	- `err` is `null` if there was no error, and is an `Error` object if there was an error.
 	- `contactAddress` is null is the user is not authenticated, and is a string of their contact address if they are authenticated.
 
 Example:
@@ -107,13 +107,13 @@ core.authenticate("the token from the email", function(err, contactAddress) {
 })
 ```
 
-##core.unauthenticate(sessionId, cb)
+##core.unauthenticate(sessionId, [cb])
 
 Sets the appropriate session id to be unauthenticated.
 
 - `token` is a string of the token that is trying to get authenticated.
-- `cb` is a function with the following argument:
-	- `err` is null if there was no error, and is an Error object if there was an error.
+- `cb` is an optional function that defaults to a no-op. It has the following argument:
+	- `err` is `null` if there was no error, and is an `Error` object if there was an error.
 
 Example:
 
@@ -129,7 +129,7 @@ core.unauthenticate("thisIsAValidToken", function(err) {
 
 ##Events
 
-`"authentication initiated"` is emitted when beginAuthentication is called. (Which should be when the user clicks the "login" button.)
+`'authentication initiated'` is emitted when `beginAuthentication()` is called. (Which should be when the user clicks the "login" button.)
 
 ```js
 core.on('authentication initiated', function (object) {
@@ -138,4 +138,16 @@ core.on('authentication initiated', function (object) {
 })
 ```
 
-(Suggestion: use the [Just-Login-Emailer](https://github.com/coding-in-the-wild/just-login-emailer) to catch this event.)
+_(You can use the [Just-Login-Emailer][jlemailer] to catch this event.)_
+
+##License
+
+[VOL](http://veryopenlicense.com/)
+
+[isauthed]: #coreisauthenticatedsessionid-cb
+[beginauth]: #corebeginauthenticationsessionid-contactaddress-cb
+[auth]: #coreauthenticatetoken-cb
+[unauth]: #coreunauthenticatesessionid-cb
+[tinyttl]: https://github.com/ArtskydJ/tiny-level-ttl#ttldb-opts
+[checkint]: https://github.com/tehshrike/expire-unused-keys#timeoutms-db-checkintervalms
+[jlemailer]: https://github.com/coding-in-the-wild/just-login-emailer
