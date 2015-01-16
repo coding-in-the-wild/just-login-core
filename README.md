@@ -111,7 +111,7 @@ core.authenticate("the token from the email", function(err, contactAddress) {
 
 Sets the appropriate session id to be unauthenticated.
 
-- `token` is a string of the token that is trying to get authenticated.
+- `sessionId` is a string of the session id that is trying to get authenticated.
 - `cb` is an optional function that defaults to a no-op. It has the following argument:
 	- `err` is `null` if there was no error, and is an `Error` object if there was an error.
 
