@@ -1,12 +1,12 @@
 var test = require('tap').test
-var sublevel = require('level-sublevel')
+var spaces = require('level-spaces')
 var JustLoginCore = require('../index.js')
 var Levelup = require('level-mem')
 var ms = require('ms')
 
-var ttlMs = ms('3 seconds')
-var checkInterval = ms('100 ms')
-var checkWindow = ms('250ms')
+var ttlMs = ms('200 ms')
+var checkInterval = ms('50 ms')
+var checkWindow = ms('75 ms')
 var fakeToken = 'hahalolthisisnotveryivenow'
 var fakeContactAddress = 'example@example.com'
 var fakeSessionId = 'whatever'
@@ -21,7 +21,6 @@ function dumbTokenGen() {
 
 test('test for authenticate', function (t) {
 	var db = Levelup('newThang')
-	db = sublevel(db)
 	var jlc = JustLoginCore(db, {
 		tokenGenerator: dumbTokenGen,
 		tokenTtl: ttlMs,
@@ -39,7 +38,7 @@ test('test for authenticate', function (t) {
 		t.ok(credentials, "credentials come back in beginAuth()")
 	})
 
-	var tokenDb = db.sublevel('token')
+	var tokenDb = spaces(db, 'token')
 
 	//tokenDb.put(fakeToken, fakeTokenData, dbTokenOpts, function (err) {
 	//	t.notOk(err, "no error in db.put()")
@@ -47,6 +46,9 @@ test('test for authenticate', function (t) {
 
 	setTimeout(function () {
 		tokenDb.get(fakeToken, dbTokenOpts, function (err, credentials) {
+			if (typeof credentials === 'string') {
+				credentials = JSON.parse(credentials)
+			}
 			t.notOk(err, "no error in 1st db.get()")
 			t.notOk(err && err.notFound, "no 'not found' error in 1st db.get()")
 			t.ok(credentials, "credentials come back in 1st db.get()")
@@ -68,5 +70,4 @@ test('test for authenticate', function (t) {
 		})
 	}, ttlMs+checkWindow)
 	
-
 })

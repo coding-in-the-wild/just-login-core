@@ -1,11 +1,12 @@
 var test = require('tap').test
-var sublevel = require('level-sublevel')
+var spaces = require('level-spaces')
 var JustLoginCore = require('../index.js')
 var Levelup = require('level-mem')
 var ms = require('ms')
 
-var timeoutMs = ms('3 seconds')
-var checkFrequency = ms('200 ms')
+var timeoutMs = ms('200 ms')
+var checkFrequency = ms('50 ms')
+var testWindowMs = ms('75 ms') //must be larger than checkIntervalMs
 var fakeSecretToken = 'hahalolthisisnotverysecretivenow'
 var fakeSessionId = 'whatever'
 var fakeContactAddress = 'example@example.com'
@@ -30,7 +31,7 @@ test('test for authenticate', function (t) {
 		sessionTimeoutCheckIntervalMs: checkFrequency
 	})
 
-	db = sublevel(db).sublevel('session')
+	db = spaces(db, 'session')
 
 	jlc.beginAuthentication(fakeSessionId, fakeContactAddress, function (err, credentials) {
 		t.notOk(err, "no error in beginAuth()")
@@ -53,7 +54,7 @@ test('test for authenticate', function (t) {
 			t.ok(address1, "address come back in 1st db.get()")
 			t.equal(address1, fakeContactAddress, "address are correct in 1st db.get()")
 		})
-	}, timeoutMs - (checkFrequency * 2))
+	}, timeoutMs - testWindowMs)
 
 	setTimeout(function () {
 		db.get(fakeSecretToken, function (err2, address2) {
@@ -64,5 +65,5 @@ test('test for authenticate', function (t) {
 
 			t.end()
 		})
-	}, timeoutMs + (checkFrequency * 2))
+	}, timeoutMs + testWindowMs)
 })

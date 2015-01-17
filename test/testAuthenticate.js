@@ -1,5 +1,5 @@
 var test = require('tap').test
-var sublevel = require('level-sublevel')
+var spaces = require('level-spaces')
 var JustLoginCore = require('../index.js')
 var Levelup = require('level-mem')
 
@@ -17,7 +17,7 @@ var dbTokenOpts = {
 test('test for authenticate', function(t) {
 	var db = Levelup('newThang')
 	var jlc = JustLoginCore(db)
-	db = sublevel(db).sublevel('token')
+	db = spaces(db, 'token')
 	
 	//authenticate(secret token, cb) -> sets the appropriate session id to be authenticated with the contact address associated with that secret token.
 	//Calls the callback with null or the contact address depending on whether or not the login was successful (same as isAuthenticated)

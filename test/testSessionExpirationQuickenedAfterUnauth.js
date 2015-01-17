@@ -1,13 +1,13 @@
 var test = require('tap').test
-var sublevel = require('level-sublevel')
+var spaces = require('level-spaces')
 var JustLoginCore = require('../index.js')
 var Levelup = require('level-mem')
 var ms = require('ms')
 
-var forgetAfterMs = ms('5 seconds') //must be smaller than timeoutMs
-var timeoutMs = ms('10 seconds')
-var checkIntervalMs = ms('200 ms')
-var testWindowMs = ms('300 ms') //must be larger than checkIntervalMs
+var forgetAfterMs = ms('200 ms') //must be smaller than (timeoutMs + testWindowMs)
+var timeoutMs = ms('300 ms')
+var checkIntervalMs = ms('50 ms')
+var testWindowMs = ms('75 ms') //must be larger than checkIntervalMs
 var fakeSessionId = 'whatever'
 var fakeContactAddress = 'example@example.com'
 
@@ -18,7 +18,7 @@ test('test for authenticate', function (t) {
 		sessionTimeoutCheckIntervalMs: checkIntervalMs
 	})
 
-	db = sublevel(db).sublevel('session')
+	db = spaces(db, 'session')
 
 	jlc.beginAuthentication(fakeSessionId, fakeContactAddress, function (err, credentials) {
 		t.notOk(err, "no error in beginAuth()")
