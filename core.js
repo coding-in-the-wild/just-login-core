@@ -133,7 +133,7 @@ module.exports = function JustLoginCore(authedSessionsDb, authedSessionsExpirati
 					contactAddress: contactAddress
 				}
 				emitter.emit('authentication initiated', credentials)
-				cb(null, credentials)
+				cb && cb(null, credentials)
 			}))
 		}
 	}
