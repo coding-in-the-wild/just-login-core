@@ -3,7 +3,7 @@ just-login-core
 
 This module handles the authentication at the database level for other just login modules.
 
-##Getting Started
+## Getting Started
 
 Install with [npm](http://nodejs.org):
 
@@ -14,7 +14,7 @@ Require:
 var Core = require('just-login-core')
 ```
 
-##Core(db[, options])
+## Core(db[, options])
 
 - `db` is expecting a levelup database.
 - `options` is an object that holds the (**gasp**) options!
@@ -40,7 +40,7 @@ var db = Level('uniqueDatabaseNameHere')
 var core = Core(db)
 ```
 
-##core.isAuthenticated(sessionId, cb)
+## core.isAuthenticated(sessionId, cb)
 
 Checks if a user is authenticated. (Logged in.)
 
@@ -61,7 +61,7 @@ core.isAuthenticated("whatever the session id is", function(err, contactAddress)
 })
 ```
 
-##core.beginAuthentication(sessionId, contactAddress, cb)
+## core.beginAuthentication(sessionId, contactAddress, cb)
 
 Starts the authentication process by emitting the 'authentication initiated' event with a token and the contact address.
 
@@ -86,7 +86,7 @@ core.beginAuthentication("whatever the session id is", "fake@example.com", funct
 })
 ```
 
-##core.authenticate(token, cb)
+## core.authenticate(token, cb)
 
 Sets the appropriate session id to be authenticated with the contact address associated with that token.
 
@@ -107,7 +107,7 @@ core.authenticate("the token from the email", function(err, contactAddress) {
 })
 ```
 
-##core.unauthenticate(sessionId, [cb])
+## core.unauthenticate(sessionId, [cb])
 
 Sets the appropriate session id to be unauthenticated.
 
@@ -127,7 +127,7 @@ core.unauthenticate("thisIsAValidToken", function(err) {
 })
 ```
 
-##Events
+## Events
 
 `'authentication initiated'` is emitted when `beginAuthentication()` is called. (Which should be when the user clicks the "login" button.)
 
@@ -140,7 +140,7 @@ core.on('authentication initiated', function (object) {
 
 _(You can use the [Just-Login-Emailer][jlemailer] to catch this event.)_
 
-##License
+## License
 
 [VOL](http://veryopenlicense.com/)
 
