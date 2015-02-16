@@ -93,14 +93,16 @@ Sets the appropriate session id to be authenticated with the contact address ass
 - `token` is a string of the token that is trying to get authenticated.
 - `cb` is a function with the following arguments: (Same as [`core.isAuthenticated()`][isauthed].)
 	- `err` is `null` if there was no error, and is an `Error` object if there was an error.
-	- `contactAddress` is null is the user is not authenticated, and is a string of their contact address if they are authenticated.
+	- `credentials` is null is the user is not authenticated, and is an object if they are authenticated:
+		-  `contactAddress` is a string of their contact address.
+		-  `sessionId` is a string of their session id.
 
 Example:
 
 ```js
-core.authenticate("the token from the email", function(err, contactAddress) {
-	if (!err && contactAddress) {
-		console.log(contactAddress + 'is now logged in! Congratulations!')
+core.authenticate("the token from the email", function(err, credentials) {
+	if (!err) {
+		console.log(credentials.contactAddress + ' is now logged in! Congratulations!')
 	} else {
 		console.log('Sorry, for some reason you are not logged in.')
 	}
