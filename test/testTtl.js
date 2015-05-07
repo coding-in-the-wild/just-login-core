@@ -2,11 +2,10 @@ var test = require('tap').test
 var spaces = require('level-spaces')
 var JustLoginCore = require('../index.js')
 var Levelup = require('level-mem')
-var ms = require('ms')
 
-var ttlMs = ms('200 ms')
-var checkInterval = ms('50 ms')
-var checkWindow = ms('75 ms')
+var ttlMs = 200
+var checkInterval = 50
+var checkWindow = 75
 var fakeToken = 'hahalolthisisnotveryivenow'
 var fakeContactAddress = 'example@example.com'
 var fakeSessionId = 'whatever'
@@ -31,7 +30,7 @@ test('test for authenticate', function (t) {
 		valueEncoding: 'json'
 	}
 
-	
+
 	jlc.beginAuthentication(fakeSessionId, fakeContactAddress, function (err, credentials) {
 		t.notOk(err, "no error in beginAuth()")
 		t.notOk(err && err.notFound, "no 'not found' error in beginAuth()")
@@ -69,5 +68,5 @@ test('test for authenticate', function (t) {
 			t.end()
 		})
 	}, ttlMs+checkWindow)
-	
+
 })

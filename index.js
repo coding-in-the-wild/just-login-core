@@ -1,14 +1,13 @@
 var spaces = require('level-spaces')
-var ms = require('ms')
 var xtend = require('xtend')
 var core = require('./core.js')
 
 var defaultOptions = {
 	tokenGenerator: UUID,
-	tokenTtl: ms('5 minutes'), //docs say 5 min
-	tokenTtlCheckIntervalMs: ms('10 seconds'), //docs say 10 sec
-	sessionUnauthenticatedAfterMsInactivity: ms('7 days'), //docs say 1 week
-	sessionTimeoutCheckIntervalMs: ms('10 seconds') //docs say 10 sec
+	tokenTtl: 5 * 60 * 1000, //docs say 5 min
+	tokenTtlCheckIntervalMs: 10 * 1000, //docs say 10 sec
+	sessionUnauthenticatedAfterMsInactivity: 7 * 24 * 60 * 60 * 1000, //docs say 1 week
+	sessionTimeoutCheckIntervalMs: 10 * 1000 //docs say 10 sec
 }
 
 function UUID() { //'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'

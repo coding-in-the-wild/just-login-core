@@ -2,11 +2,10 @@ var test = require('tap').test
 var spaces = require('level-spaces')
 var JustLoginCore = require('../index.js')
 var Levelup = require('level-mem')
-var ms = require('ms')
 
-var timeoutMs = ms('200 ms')
-var checkFrequency = ms('50 ms')
-var testWindowMs = ms('75 ms') //must be larger than checkIntervalMs
+var timeoutMs = 200
+var checkFrequency = 50
+var testWindowMs = 75 //must be larger than checkIntervalMs
 var fakeSecretToken = 'hahalolthisisnotverysecretivenow'
 var fakeSessionId = 'whatever'
 var fakeContactAddress = 'example@example.com'
@@ -46,7 +45,7 @@ test('test for authenticate', function (t) {
 			t.equal(credentials0 && credentials0.contactAddress, fakeContactAddress, "credentials are correct in authenticate()")
 		})
 	})
-	
+
 	setTimeout(function () {
 		db.get(fakeSessionId, function (err1, address1) {
 			t.notOk(err1, "no error in 1st db.get()")

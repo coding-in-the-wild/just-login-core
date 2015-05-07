@@ -31,7 +31,6 @@
     "expire-unused-keys": "^1.0.2",
     "level-lock": "^1.0.1",
     "level-spaces": "^1.1.1",
-    "ms": "^0.6.2",
     "tiny-level-ttl": "^2.0.0",
     "xtend": "^4.0.0"
   }
