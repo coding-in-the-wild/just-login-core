@@ -10,46 +10,31 @@ var expected = {
 test('test for the entire just-login core', function (t) {
 	var levelup = Levelup('newThang')
 	var jlc = JustLoginCore(levelup)
-	
-	t.plan(15)
-	
-	jlc.isAuthenticated(expected.sessionId, function (err, address) { //Not authenticated yet
-		t.notOk(err, 'no error for isAuthenticated 1')
-		t.notOk(address, 'no value came back')
-		
-		jlc.beginAuthentication(expected.sessionId, expected.contactAddress, function (err){
-			t.notOk(err)
+
+	t.plan(8)
+
+	var creds = null
+	jlc.on('authenticated', function (credentials) {
+		creds = credentials
+	})
+
+	jlc.on('authentication initiated', function (credentials) {
+		t.ok(credentials.token, "Token exists")
+		t.equal(credentials.contactAddress, expected.contactAddress, "Adresses match")
+
+		t.notOk(creds, 'not authenticated yet')
+		creds = null
+
+		jlc.authenticate(credentials.token, function (err, credentials) {
+			t.notOk(err, 'no error for authenticate')
+			t.ok(credentials, 'got a value back')
+			t.deepEqual(credentials, expected, 'authenticated as correct user')
+			t.deepEqual(creds, expected, 'authenticated as correct user`')
+			t.end()
 		})
+	})
 
-		jlc.on('authentication initiated', function (credentials) {
-			t.ok(credentials.token, "Token exists")
-			t.equal(credentials.contactAddress, expected.contactAddress, "Adresses match")
-			
-			jlc.isAuthenticated(expected.sessionId, function (err, address) { //Not authenticated yet
-				t.notOk(err, 'no error for isAuthenticated 2')
-				t.notOk(address, 'no value came back')
-			
-				jlc.authenticate(credentials.token, function (err, credentials) {
-					t.notOk(err, 'no error for authenticate')
-					t.ok(credentials, 'got a value back')
-					t.deepEqual(credentials, expected, 'got back correct value')
-					
-					jlc.isAuthenticated(expected.sessionId, function (err, address) { //Authenticated now
-						t.notOk(err, 'no error for isAuthenticated 3')
-						t.equal(address, expected.contactAddress, 'got address back')
-
-						jlc.unauthenticate(expected.sessionId, function (err) {
-							t.notOk(err)
-
-							jlc.isAuthenticated(expected.sessionId, function (err, address) { //Not authenticated yet
-								t.notOk(err, 'no error for isAuthenticated 2')
-								t.notOk(address, 'no value came back')
-								t.end()
-							})
-						})
-					})
-				})
-			})
-		})
+	jlc.beginAuthentication(expected.sessionId, expected.contactAddress, function (err) {
+		t.notOk(err)
 	})
 })
