@@ -105,21 +105,19 @@ module.exports = function JustLoginCore(tokenDb, options) {
 			} else {
 				cb = wrap(unlockToken, cb)
 
+				tokenDb.get(token, cbIfErr(cb, makeResultAnObject(handleCredentials)))
+
 				//credentials = { contact address, session id }
 				function handleCredentials(err, credentials) {
-					if ((err && err.notFound) || !credentials) { //if did not find credentials
-						cb(new Error('No valid token found' + err))
-					} else { //found value
+					if (err && err.notFound) {
+						cb(new Error('No valid token found'))
+					} else {
 						tokenDb.del(token, cbIfErr(cb, function () {
 							emitter.emit('authenticated', credentials)
 							cb(null, credentials)
 						}))
 					}
 				}
-				tokenDb.get(token, function (err, val) {
-					console.log('core.js ' + err + val)
-				})
-				tokenDb.get(token, cbIfErr(cb, makeResultAnObject(handleCredentials)))
 			}
 		}
 	}

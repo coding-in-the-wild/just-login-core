@@ -1,5 +1,4 @@
 var test = require('tape')
-var spaces = require('level-spaces')
 var JustLoginCore = require('../index.js')
 var Levelup = require('level-mem')
 
@@ -24,14 +23,13 @@ test('test for authenticate', function(t) {
 
 	jlc.authenticate(fakeSecretToken, function (err, creds) { //token does not exist
 		t.ok(err, 'there was an error')
-		t.ok(err instanceof Error, "err is an Error")
+		t.ok(err instanceof Error, 'err is an Error')
 		t.notOk(creds, 'nothing returned')
 
 		db.put(fakeSecretToken, fakeCreds, dbTokenOpts, function (err) { //making token exist
 			t.notOk(err, 'no err for put')
 
 			db.get(fakeSecretToken, function (err, val) {
-				console.log(err + val)
 				jlc.authenticate(fakeSecretToken, function (err, creds) { //token exists
 					t.notOk(err, 'no error in authenticate()')
 					t.ok(creds, 'something returned')
