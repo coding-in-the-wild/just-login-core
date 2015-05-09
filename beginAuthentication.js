@@ -1,9 +1,9 @@
 var lock = require('level-lock')
 
 module.exports = function b(emitter, tokenDb, tokenGenerator) {
-	//Emits an event with a secret token and the contact address
-	//so somebody can go send a message to that address.
 	return function beginAuthentication(sessionId, contactAddress, cb) {
+		if (!cb) cb = function () {}
+
 		if (typeof sessionId !== 'string' || typeof contactAddress !== 'string') {
 			setTimeout(cb, 0, new Error('Session id and/or contact address is not a string.'))
 		} else {
