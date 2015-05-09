@@ -30,7 +30,7 @@ var Core = require('just-login-core')
 
 It emits some [events](#core-events) and has a few methods:
 
-## `core.beginAuthentication(sessionId, contactAddress, cb)`
+## `core.beginAuthentication(sessionId, contactAddress[, cb])`
 
 Starts the authentication process by emitting the 'authentication initiated' event with a token and the contact address.
 
@@ -43,9 +43,10 @@ Something else must listen for the event, and send a message to the user. See [`
 	- `authReqInfo` is an object with the authentication request information. The object is identical to the object emitted in the event, with the following properties:
 		- `contactAddress` is a string with the contact address.
 		- `token` is a string of the token.
+- Emits `core.on('authentication initiated', function (authReqInfo) { ... })`
 
 ```js
-core.beginAuthentication('session id goes here', 'fake@example.com', function (err, authReqInfo) {
+core.beginAuthentication('session id', 'fake@example.com', function (err, authReqInfo) {
 	if (!err) {
 		console.log(authReqInfo.token) //logs the token
 		console.log(authReqInfo.contactAddress) //logs: "fake@example.com"
@@ -53,9 +54,9 @@ core.beginAuthentication('session id goes here', 'fake@example.com', function (e
 })
 ```
 
-## `core.authenticate(token, cb)`
+## `core.authenticate(token[, cb])`
 
-Sets the appropriate session id to be authenticated with the contact address associated with that token.
+Authenticates the token, and calls back with the session id and contact address associated with that token. Then the token and it's associated data is deleted. A token can only be authenticated once.
 
 - `token` is a string of the token that is trying to get authenticated.
 - `cb` is a function with the following arguments:
@@ -63,9 +64,10 @@ Sets the appropriate session id to be authenticated with the contact address ass
 	- `credentials` is null is the user is not authenticated, and is an object if they are authenticated:
 		-  `contactAddress` is a string of their contact address.
 		-  `sessionId` is a string of their session id.
+- Emits `core.on('authenticated', function (credentials) { ... })`
 
 ```js
-core.authenticate('the token from the email', function(err, credentials) {
+core.authenticate('the token', function(err, credentials) {
 	if (!err) {
 		console.log(credentials.contactAddress + ' is now logged in! Congratulations!')
 	} else {
@@ -81,9 +83,9 @@ core.authenticate('the token from the email', function(err, credentials) {
 Emitted when `beginAuthentication()` is called. (Which should be when the user clicks the "login" button.)
 
 ```js
-core.on('authentication initiated', function (obj) {
-	console.log(obj.contactAddress)
-	console.log(obj.token)
+core.on('authentication initiated', function (authReqInfo) {
+	console.log(authReqInfo.contactAddress)
+	console.log(authReqInfo.token)
 })
 ```
 
@@ -94,9 +96,9 @@ _(You can use [just-login-emailer][jlemailer] to catch this event.)_
 Emitted when `core.authenticate()` is successful.
 
 ```js
-core.on('authenticated', function (obj) {
-	console.log(obj.contactAddress)
-	console.log(obj.sessionId)
+core.on('authenticated', function (credentials) {
+	console.log(credentials.contactAddress)
+	console.log(credentials.sessionId)
 })
 ```
 
