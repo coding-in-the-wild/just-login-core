@@ -28,13 +28,13 @@ var Core = require('just-login-core')
 
 ## `core`
 
-It emits some [events](#events) and has a few methods:
+It emits some [events](#core-events) and has a few methods:
 
 ## `core.beginAuthentication(sessionId, contactAddress, cb)`
 
 Starts the authentication process by emitting the 'authentication initiated' event with a token and the contact address.
 
-Something else must listen for the event, and send a message to the user. See [Events](#events) for more information.
+Something else must listen for the event, and send a message to the user. See [`core` events](#core-events) for more information.
 
 - `sessionId` is a string of the session id that is trying to get authenticated.
 - `contactAddress` is string of the user's contact info, (usually an email address).
