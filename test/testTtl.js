@@ -18,7 +18,7 @@ function dumbTokenGen() {
 }
 
 test('time to live is applied', function (t) {
-	var db = Levelup('newThang')
+	var db = Levelup()
 	var jlc = JustLoginCore(db, {
 		tokenGenerator: dumbTokenGen,
 		tokenTtl: ttlMs,

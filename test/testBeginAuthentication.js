@@ -6,8 +6,7 @@ var fakeId = "LOLThisIsAFakeSessionId"
 var fakeAddress = "example@example.com"
 
 test('test for beginAuthentication', function(t) {
-	var levelup = Levelup('newThang')
-	var jlc = JustLoginCore(levelup)
+	var jlc = JustLoginCore(new Levelup())
 
 	t.plan(23)
 	jlc.beginAuthentication(fakeId, fakeAddress, function (err, authReqInfo) { //O = One

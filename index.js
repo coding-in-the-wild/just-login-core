@@ -1,6 +1,9 @@
-var xtend = require('xtend')
+var EventEmitter = require('events').EventEmitter
 var uuid = require('random-uuid-v4')
-var core = require('./core.js')
+var ttl = require('tiny-level-ttl')
+var xtend = require('xtend')
+var authenticate = require('./authenticate.js')
+var beginAuthentication = require('./beginAuthentication.js')
 
 var defaultOptions = {
 	tokenGenerator: uuid,
@@ -12,6 +15,17 @@ module.exports = function JustLoginCore(tokenDb, options) {
 	if (!tokenDb) {
 		throw new Error("Just Login Core requires a valid levelup database!")
 	}
+	var opts = xtend(defaultOptions, options)
 
-	return core(tokenDb, xtend(defaultOptions, options))
+	ttl(tokenDb, {
+		ttl: opts.tokenTtl,
+		checkInterval: opts.tokenTtlCheckIntervalMs
+	})
+
+	var emitter = new EventEmitter()
+
+	emitter.authenticate = authenticate(emitter, tokenDb)
+	emitter.beginAuthentication = beginAuthentication(emitter, tokenDb, opts.tokenGenerator)
+
+	return emitter
 }

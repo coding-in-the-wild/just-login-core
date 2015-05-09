@@ -10,7 +10,7 @@ var jlcOpts = {
 }
 
 test('beginAuthentication respects level-lock locks', function(t) {
-	var db = Levelup('newThang')
+	var db = new Levelup()
 	var jlc = JustLoginCore(db, jlcOpts)
 
 	jlc.beginAuthentication('key-1', 'value', function (err) {
@@ -30,7 +30,7 @@ test('beginAuthentication respects level-lock locks', function(t) {
 })
 
 test('authenticate respects level-lock locks', function(t) {
-	var db = Levelup('newThang')
+	var db = new Levelup()
 	var jlc = JustLoginCore(db, jlcOpts)
 
 	db.put('token1', '{ "contactAddress": "wayToContactPerson", "sessionId": "it doesn\'t care" }')

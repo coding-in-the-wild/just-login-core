@@ -3,15 +3,18 @@ var JustLoginCore = require('../index.js')
 var Levelup = require('level-mem')
 
 var expected = {
-	sessionId: "LOLThisIsAFakeSessionId",
-	contactAddress: "example@example.com"
+	sessionId: 'LOLThisIsAFakeSessionId',
+	contactAddress: 'example@example.com'
 }
 
 test('test for the entire just-login core', function (t) {
-	var levelup = Levelup('newThang')
-	var jlc = JustLoginCore(levelup)
+	var jlc = JustLoginCore(new Levelup())
 
 	t.plan(8)
+
+	jlc.beginAuthentication(expected.sessionId, expected.contactAddress, function (err) {
+		t.notOk(err, 'begin authentication, no error')
+	})
 
 	var creds = null
 	jlc.on('authenticated', function (credentials) {
@@ -19,8 +22,8 @@ test('test for the entire just-login core', function (t) {
 	})
 
 	jlc.on('authentication initiated', function (credentials) {
-		t.ok(credentials.token, "Token exists")
-		t.equal(credentials.contactAddress, expected.contactAddress, "Adresses match")
+		t.ok(credentials.token, 'Token exists')
+		t.equal(credentials.contactAddress, expected.contactAddress, 'Addresses match')
 
 		t.notOk(creds, 'not authenticated yet')
 		creds = null
@@ -32,9 +35,5 @@ test('test for the entire just-login core', function (t) {
 			t.deepEqual(creds, expected, 'authenticated as correct user`')
 			t.end()
 		})
-	})
-
-	jlc.beginAuthentication(expected.sessionId, expected.contactAddress, function (err) {
-		t.notOk(err)
 	})
 })
