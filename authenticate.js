@@ -26,9 +26,7 @@ module.exports = function a(emitter, tokenDb) {
 					cb.apply(null, arguments)
 				}
 				tokenDb.get(token, function (err, value) {
-					if (err && err.notFound) {
-						cb2(new Error('No valid token found'))
-					} else if (err) {
+					if (err) {
 						cb2(err)
 					} else {
 						jsonParse(value, function (err, credentials) {
