@@ -1,6 +1,8 @@
 just-login-core
 ===============
 
+[![Build Status](https://travis-ci.org/coding-in-the-wild/just-login-core.svg)](https://travis-ci.org/coding-in-the-wild/just-login-core)
+
 Handles tokens for just-login.
 
 # Example
