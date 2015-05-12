@@ -25,8 +25,8 @@
     "test": "tape ./test/*.js"
   },
   "dependencies": {
-    "level-lock": "^1.0.1",
     "random-uuid-v4": "0.0.4",
+    "read-write-lock": "^1.0.3",
     "tiny-level-ttl": "^3.1.1",
     "xtend": "^4.0.0"
   }

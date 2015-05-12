@@ -1,6 +1,4 @@
-var lock = require('level-lock')
-
-module.exports = function b(emitter, tokenDb, tokenGenerator) {
+module.exports = function b(emitter, tokenDb, tokenLock, tokenGenerator) {
 	return function beginAuthentication(sessionId, contactAddress, cb) {
 		if (!cb) cb = function () {}
 
@@ -13,12 +11,9 @@ module.exports = function b(emitter, tokenDb, tokenGenerator) {
 				contactAddress: contactAddress
 			})
 
-			var unlockToken = lock(tokenDb, token, 'w')
-			if (!unlockToken) {
-				setTimeout(cb, 0, new Error('Token write error'))
-			} else {
+			tokenLock.writeLock(function (unlock) {
 				tokenDb.put(token, user, function (err) {
-					unlockToken()
+					unlock()
 					if (err) {
 						cb(err)
 					} else {
@@ -30,7 +25,7 @@ module.exports = function b(emitter, tokenDb, tokenGenerator) {
 						cb(null, info)
 					}
 				})
-			}
+			})
 		}
 	}
 }

@@ -1,5 +1,3 @@
-var lock = require('level-lock')
-
 function jsonParse(value, cb) {
 	var err = null, result
 	try {
@@ -10,19 +8,16 @@ function jsonParse(value, cb) {
 	cb(err, result)
 }
 
-module.exports = function a(emitter, tokenDb) {
+module.exports = function a(emitter, tokenDb, tokenLock) {
 	return function authenticate(token, cb) { //cb(err, credentials)
 		if (!cb) cb = function () {}
 
 		if (!token) {
 			setTimeout(cb, 0, new Error('No token found'))
 		} else {
-			var unlockToken = lock(tokenDb, token, 'rw')
-			if (!unlockToken) {
-				setTimeout(cb, 0, new Error('Token read/write error'))
-			} else {
+			tokenLock.readLock(function (unlock) {
 				function cb2() {
-					unlockToken()
+					unlock()
 					cb.apply(null, arguments)
 				}
 				tokenDb.get(token, function (err, value) {
@@ -41,7 +36,7 @@ module.exports = function a(emitter, tokenDb) {
 						})
 					}
 				})
-			}
+			})
 		}
 	}
 }
