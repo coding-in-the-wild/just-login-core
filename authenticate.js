@@ -13,9 +13,11 @@ module.exports = function a(emitter, tokenDb, tokenLock) {
 		if (!cb) cb = function () {}
 
 		if (!token) {
-			setTimeout(cb, 0, new Error('No token found'))
+			process.nextTick(function () {
+				cb(new Error('No token found'))
+			})
 		} else {
-			tokenLock.readLock(function (unlock) {
+			tokenLock(function (unlock) {
 				function cb2() {
 					unlock()
 					cb.apply(null, arguments)

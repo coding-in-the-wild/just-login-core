@@ -11,7 +11,7 @@ module.exports = function b(emitter, tokenDb, tokenLock, tokenGenerator) {
 				contactAddress: contactAddress
 			})
 
-			tokenLock.writeLock(function (unlock) {
+			tokenLock(function (unlock) {
 				tokenDb.put(token, user, function (err) {
 					unlock()
 					if (err) {

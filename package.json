@@ -26,7 +26,7 @@
   },
   "dependencies": {
     "random-uuid-v4": "0.0.4",
-    "read-write-lock": "^1.0.5",
+    "mutexify": "^1.0.1",
     "tiny-level-ttl": "^3.1.1",
     "xtend": "^4.0.0"
   }

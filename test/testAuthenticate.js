@@ -34,7 +34,6 @@ test('test for authenticate', function(t) {
 				t.equal(JSON.parse(val), fakeCreds, 'db looks good')
 
 				jlc.authenticate(fakeSecretToken, function (err, creds) { //token exists
-					console.log('err, creds ' + err + ' | ' + creds)
 					t.notOk(err, 'no error in authenticate()')
 					t.ok(creds, 'something returned')
 					t.notEqual(creds, '[object Object]', 'should not be a string saying "[object Object]"')

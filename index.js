@@ -1,10 +1,10 @@
 var EventEmitter = require('events').EventEmitter
-var ReadWriteLock = require('read-write-lock')
+var Mutexify = require('mutexify')
 var uuid = require('random-uuid-v4')
 var ttl = require('tiny-level-ttl')
 var xtend = require('xtend')
 var authenticate = require('./authenticate.js')
-var beginAuthentication = require('./beginAuthentication.js')
+var begin = require('./beginAuthentication.js')
 
 module.exports = function JustLoginCore(tokenDb, options) {
 	if (!tokenDb) {
@@ -14,7 +14,7 @@ module.exports = function JustLoginCore(tokenDb, options) {
 		tokenGenerator: uuid,
 		tokenTtl: 5 * 60 * 1000, // 5 min
 		tokenTtlCheckIntervalMs: 10 * 1000, // 10 sec
-		tokenLock: ReadWriteLock()
+		tokenLock: Mutexify()
 	}, options)
 
 	ttl(tokenDb, {
@@ -25,7 +25,7 @@ module.exports = function JustLoginCore(tokenDb, options) {
 	var emitter = new EventEmitter()
 
 	emitter.authenticate = authenticate(emitter, tokenDb, opts.tokenLock)
-	emitter.beginAuthentication = beginAuthentication(emitter, tokenDb, opts.tokenLock, opts.tokenGenerator)
+	emitter.beginAuthentication = begin(emitter, tokenDb, opts.tokenLock, opts.tokenGenerator)
 
 	return emitter
 }

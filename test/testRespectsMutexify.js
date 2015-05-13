@@ -1,38 +1,39 @@
 var test = require('tape')
 var JustLoginCore = require('../index.js')
 var Levelup = require('level-mem')
-var Locker = require('read-write-lock')
+var Mutexify = require('mutexify')
 
-var lock = Locker()
+var lock = Mutexify()
+lock.wat=true
 var jlcOpts = {
-	tokenLocker: lock,
+	tokenLock: lock,
 	tokenGenerator: function () {
 		return 'token'
 	}
 }
 
-test('beginAuthentication respects read-write-lock locks', function(t) {
+test('beginAuthentication respects mutexify locks', function(t) {
 	var db = new Levelup()
 	var jlc = JustLoginCore(db, jlcOpts)
 
 	jlc.beginAuthentication('key-1', 'value', function (err) {
 		t.notOk(err, 'no err ' + (err && err.message))
-		lock.writeLock(function (unlock) {
-			var before = new Date().getTime()
-			jlc.beginAuthentication('key-2', 'value', function (err) {
-				t.notOk(err, 'no error when locked')
-				var elapsed = new Date().getTime() - before
-				t.ok(elapsed >= 200, 'waited long enough')
-				t.ok(elapsed <= 250, 'did not wait too long')
-				t.end()
-			})
+		var before = new Date().getTime()
+		lock(function (unlock) {
 			setTimeout(unlock, 200)
+		})
+		jlc.beginAuthentication('key-2', 'value', function (err) {
+			t.notOk(err, 'no error when locked')
+			var elapsed = new Date().getTime() - before
+			t.ok(elapsed >= 195, 'waited long enough: ' + elapsed)
+			t.ok(elapsed <= 250, 'did not wait too long')
+			t.end()
 		})
 	})
 
 })
 
-test('authenticate respects read-write-lock locks', function(t) {
+test('authenticate respects mutexify locks', function(t) {
 	var db = new Levelup()
 	var jlc = JustLoginCore(db, jlcOpts)
 
@@ -41,16 +42,18 @@ test('authenticate respects read-write-lock locks', function(t) {
 
 	jlc.authenticate('token1', function (err) {
 		t.notOk(err, 'first auth has no err' + (err && err.message))
-		lock.writeLock(function (unlock) {
-			var before = new Date().getTime()
+		var before = new Date().getTime()
+		lock(function (unlock) {
+			setTimeout(unlock, 200)
+		})
+		setTimeout(function () {
 			jlc.authenticate('token2', function (err) {
 				t.notOk(err, 'no error when locked')
 				var elapsed = new Date().getTime() - before
-				t.ok(elapsed >= 200, 'waited long enough')
+				t.ok(elapsed >= 195, 'waited long enough: ' + elapsed)
 				t.ok(elapsed <= 250, 'did not wait too long')
 				t.end()
 			})
-			setTimeout(unlock, 200)
-		})
+		}, 5)
 	})
 })
