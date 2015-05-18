@@ -17,7 +17,7 @@ module.exports = function a(emitter, tokenDb, tokenLock) {
 				cb(new Error('No token found'))
 			})
 		} else {
-			tokenLock(function (unlock) {
+			tokenLock(token)(function (unlock) {
 				function cb2() {
 					unlock()
 					cb.apply(null, arguments)

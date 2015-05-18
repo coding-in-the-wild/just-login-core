@@ -1,12 +1,12 @@
 var test = require('tape')
 var JustLoginCore = require('../index.js')
 var Levelup = require('level-mem')
+var keyMaster = require('key-master')
 var Mutexify = require('mutexify')
 
-var lock = Mutexify()
-lock.wat=true
+var map = keyMaster(Mutexify)
 var jlcOpts = {
-	tokenLock: lock,
+	tokenLock: map.get,
 	tokenGenerator: function () {
 		return 'token'
 	}
@@ -19,7 +19,7 @@ test('beginAuthentication respects mutexify locks', function(t) {
 	jlc.beginAuthentication('key-1', 'value', function (err) {
 		t.notOk(err, 'no err ' + (err && err.message))
 		var before = new Date().getTime()
-		lock(function (unlock) {
+		map.get('key-2')(function (unlock) {
 			setTimeout(unlock, 200)
 		})
 		jlc.beginAuthentication('key-2', 'value', function (err) {
@@ -30,7 +30,6 @@ test('beginAuthentication respects mutexify locks', function(t) {
 			t.end()
 		})
 	})
-
 })
 
 test('authenticate respects mutexify locks', function(t) {
@@ -43,7 +42,7 @@ test('authenticate respects mutexify locks', function(t) {
 	jlc.authenticate('token1', function (err) {
 		t.notOk(err, 'first auth has no err' + (err && err.message))
 		var before = new Date().getTime()
-		lock(function (unlock) {
+		map.get('token2')(function (unlock) {
 			setTimeout(unlock, 200)
 		})
 		setTimeout(function () {

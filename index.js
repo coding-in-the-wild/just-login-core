@@ -1,5 +1,6 @@
 var EventEmitter = require('events').EventEmitter
 var Mutexify = require('mutexify')
+var keyMaster = require('key-master')
 var uuid = require('random-uuid-v4')
 var ttl = require('tiny-level-ttl')
 var xtend = require('xtend')
@@ -10,11 +11,12 @@ module.exports = function JustLoginCore(tokenDb, options) {
 	if (!tokenDb) {
 		throw new Error("Just Login Core requires a valid levelup database!")
 	}
+	var map = keyMaster(Mutexify)
 	var opts = xtend({
 		tokenGenerator: uuid,
 		tokenTtl: 5 * 60 * 1000, // 5 min
 		tokenTtlCheckIntervalMs: 10 * 1000, // 10 sec
-		tokenLock: Mutexify()
+		tokenLock: map.get
 	}, options)
 
 	ttl(tokenDb, {
