@@ -1,32 +1,33 @@
-var spaces = require('level-spaces')
+var EventEmitter = require('events').EventEmitter
+var Mutexify = require('mutexify')
+var keyMaster = require('key-master')
+var uuid = require('random-uuid-v4')
+var ttl = require('tiny-level-ttl')
 var xtend = require('xtend')
-var core = require('./core.js')
+var authenticate = require('./authenticate.js')
+var begin = require('./beginAuthentication.js')
 
-var defaultOptions = {
-	tokenGenerator: UUID,
-	tokenTtl: 5 * 60 * 1000, //docs say 5 min
-	tokenTtlCheckIntervalMs: 10 * 1000, //docs say 10 sec
-	sessionUnauthenticatedAfterMsInactivity: 7 * 24 * 60 * 60 * 1000, //docs say 1 week
-	sessionTimeoutCheckIntervalMs: 10 * 1000 //docs say 10 sec
-}
-
-function UUID() { //'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
-	return 'xxxxxxxxxxxx4xxxyxxxxxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-		var r = Math.random() * 16 | 0
-		var v = c == 'x' ? r : (r & 0x3 | 0x8)
-		return v.toString(16)
-	})
-}
-
-module.exports = function JustLoginCore(db, options) {
-	if (!db) {
+module.exports = function JustLoginCore(tokenDb, options) {
+	if (!tokenDb) {
 		throw new Error("Just Login Core requires a valid levelup database!")
 	}
+	var lock = keyMaster(Mutexify).get
+	var opts = xtend({
+		tokenGenerator: uuid,
+		tokenTtl: 5 * 60 * 1000, // 5 min
+		tokenTtlCheckIntervalMs: 10 * 1000 // 10 sec
+	}, options)
 
-	var authedSessionsDb = spaces(db, 'session')
-	var authedSessionsExpirationDb = spaces(db, 'session-expiration')
-	var tokenDb = spaces(db, 'token', {valueEncoding: 'json'})
-	options = xtend(defaultOptions, options)
+	ttl(tokenDb, {
+		ttl: opts.tokenTtl,
+		checkInterval: opts.tokenTtlCheckIntervalMs
+	})
 
-	return core(authedSessionsDb, authedSessionsExpirationDb, tokenDb, options)
+	var emitter = new EventEmitter()
+
+	emitter.authenticate = authenticate(emitter, tokenDb, lock)
+	emitter.beginAuthentication = begin(emitter, tokenDb, lock, opts.tokenGenerator)
+	emitter._lock = lock // tests use this
+
+	return emitter
 }

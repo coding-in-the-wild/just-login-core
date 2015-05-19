@@ -18,20 +18,17 @@
     "url": "https://github.com/coding-in-the-wild/just-login-core.git"
   },
   "devDependencies": {
-    "tap": "^0.4.8",
+    "tape": "^4.0.0",
     "level-mem": "^0.18.0"
   },
-  "directories": {
-    "test": "test"
-  },
   "scripts": {
-    "test": "tap ./test/*.js"
+    "test": "tape ./test/*.js"
   },
   "dependencies": {
-    "expire-unused-keys": "^1.0.2",
-    "level-lock": "^1.0.1",
-    "level-spaces": "^1.1.1",
-    "tiny-level-ttl": "^2.0.0",
+    "key-master": "^1.1.0",
+    "mutexify": "^1.0.1",
+    "random-uuid-v4": "0.0.4",
+    "tiny-level-ttl": "^3.1.1",
     "xtend": "^4.0.0"
   }
 }

@@ -1,4 +1,4 @@
-var test = require('tap').test
+var test = require('tape')
 var JustLoginCore = require('../index.js')
 var Levelup = require('level-mem')
 
@@ -6,9 +6,8 @@ var fakeId = "LOLThisIsAFakeSessionId"
 var fakeAddress = "example@example.com"
 
 test('test for beginAuthentication', function(t) {
-	var levelup = Levelup('newThang')
-	var jlc = JustLoginCore(levelup)
-	
+	var jlc = JustLoginCore(new Levelup())
+
 	t.plan(23)
 	jlc.beginAuthentication(fakeId, fakeAddress, function (err, authReqInfo) { //O = One
 		t.notOk(err, "O - no error")
@@ -42,5 +41,5 @@ test('test for beginAuthentication', function(t) {
 	})
 
 	//-> emits an event with a secret token and the contact address, so somebody can go send a message to that address
-	
+
 })

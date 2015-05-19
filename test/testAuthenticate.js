@@ -1,43 +1,45 @@
-var test = require('tap').test
-var spaces = require('level-spaces')
+var test = require('tape')
 var JustLoginCore = require('../index.js')
 var Levelup = require('level-mem')
 
 var fakeSecretToken = 'hahalolthisisnotverysecretivenow'
-var fakeTokenData = {
+var fakeCreds = JSON.stringify({
 	sessionId: 'whatever',
 	contactAddress: 'example@example.com'
-}
-
+})
 var dbTokenOpts = {
 	keyEncoding: 'utf8',
 	valueEncoding: 'json'
 }
 
 test('test for authenticate', function(t) {
-	var db = Levelup('newThang')
+	var db = new Levelup()
 	var jlc = JustLoginCore(db)
-	db = spaces(db, 'token')
-	
-	//authenticate(secret token, cb) -> sets the appropriate session id to be authenticated with the contact address associated with that secret token.
-	//Calls the callback with null or the contact address depending on whether or not the login was successful (same as isAuthenticated)
 
-	t.plan(8)
-	
-	jlc.authenticate(fakeSecretToken, function (err, value) { //token does not exist
+	//authenticate(secret token, cb) -> sets the appropriate session id to be authenticated with the contact address associated with that secret token.
+	//Calls the callback with null or the contact address depending on whether or not the login was successful
+
+	t.plan(10)
+
+	jlc.authenticate(fakeSecretToken, function (err, creds) { //token does not exist
 		t.ok(err, 'there was an error')
-		t.ok(err instanceof Error, "err is an Error")
-		t.notOk(value, 'nothing returned')
-	
-		db.put(fakeSecretToken, fakeTokenData, dbTokenOpts, function (err) { //making token exist
+		t.ok(err instanceof Error, 'err is an Error')
+		t.notOk(creds, 'nothing returned')
+
+		db.put(fakeSecretToken, fakeCreds, dbTokenOpts, function (err) { //making token exist
 			t.notOk(err, 'no err for put')
 
-			jlc.authenticate(fakeSecretToken, function (err, credentials) { //token exists
-				t.notOk(err, 'no error in authenticate()')
-				t.ok(credentials, 'something returned')
-				t.notEqual(credentials, '[object Object]', 'should not be a string saying "[object Object]"')
-				t.deepEqual(credentials, fakeTokenData, 'got back correct value')
-				t.end()
+			db.get(fakeSecretToken, function (err, val) {
+				t.notOk(err, 'no error in db.get()')
+				t.equal(JSON.parse(val), fakeCreds, 'db looks good')
+
+				jlc.authenticate(fakeSecretToken, function (err, creds) { //token exists
+					t.notOk(err, 'no error in authenticate()')
+					t.ok(creds, 'something returned')
+					t.notEqual(creds, '[object Object]', 'should not be a string saying "[object Object]"')
+					t.deepEqual(creds, fakeCreds, 'got back correct value')
+					t.end()
+				})
 			})
 		})
 	})
