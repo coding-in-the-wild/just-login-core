@@ -27,14 +27,18 @@ module.exports = function a(emitter, tokenDb, tokenLock) {
 						cb2(err)
 					} else {
 						jsonParse(value, function (err, credentials) {
-							tokenDb.del(token, function (err) {
-								if (err) {
-									cb2(err)
-								} else {
-									emitter.emit('authenticated', credentials)
-									cb2(null, credentials)
-								}
-							})
+							if (err) {
+								cb2(err)
+							} else {
+								tokenDb.del(token, function (err) {
+									if (err) {
+										cb2(err)
+									} else {
+										emitter.emit('authenticated', credentials)
+										cb2(null, credentials)
+									}
+								})
+							}
 						})
 					}
 				})
