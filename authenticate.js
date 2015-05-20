@@ -1,12 +1,4 @@
-function jsonParse(value, cb) {
-	var err = null, result
-	try {
-		result = JSON.parse(value)
-	} catch (e) {
-		err = e
-	}
-	cb(err, result)
-}
+var jsonParse = require('safe-json-parse')
 
 module.exports = function a(emitter, tokenDb, tokenLock) {
 	return function authenticate(token, cb) { //cb(err, credentials)
