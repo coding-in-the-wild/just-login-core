@@ -9,8 +9,32 @@ Handles tokens for just-login.
 
 ```js
 var JustLoginCore = require('just-login-core')
-var db = require('level-mem')()
+var db = require('level')('./databases/core')
 var core = JustLoginCore(db)
+
+router.get('/login', function (req, res) {
+	var query = url.parse(req.url, true).query
+
+	core.beginAuthentication(query.sessionId, query.email, sendResponse(res, '<p>U shud receiv email within few minutez...</p>'))
+})
+
+router.get('/authenticate', function (req, res) {
+	var query = url.parse(req.url, true).query
+
+	core.authenticate(query.token, sendResponse(res, '<p>U r nao loggd in!!!</p>'))
+})
+
+function sendResponse(res, successHtml) {
+	return function onRequest(err) {
+		if (err) {
+			res.writeHead(500, { 'Content-Type': 'text/plain' })
+			res.end(err.message)
+		} else {
+			res.writeHead(200, { 'Content-Type': 'text/html' })
+			res.end(successHtml)
+		}
+	}
+}
 ```
 
 # API
@@ -42,10 +66,11 @@ Something else must listen for the event, and send a message to the user. See [`
 - `contactAddress` is string of the user's contact info, (usually an email address).
 - `cb` is a function with the following arguments:
 	- `err` is an Error object or null.
-	- `authReqInfo` is an object with the authentication request information. The object is identical to the object emitted in the event, with the following properties:
+	- `authReqInfo` is an object with the authentication request information (or null if an error occurred). The object is identical to the object emitted in the event, with the following properties:
 		- `contactAddress` is a string with the contact address.
 		- `token` is a string of the token.
-- Emits `core.on('authentication initiated', function (authReqInfo) { ... })`
+
+Emits `core.on('authentication initiated', function (authReqInfo) { ... })`
 
 ```js
 core.beginAuthentication('session id', 'fake@example.com', function (err, authReqInfo) {
@@ -66,7 +91,8 @@ Authenticates the token, and calls back with the session id and contact address 
 	- `credentials` is null is the user is not authenticated, and is an object if they are authenticated:
 		-  `contactAddress` is a string of their contact address.
 		-  `sessionId` is a string of their session id.
-- Emits `core.on('authenticated', function (credentials) { ... })`
+
+Emits `core.on('authenticated', function (credentials) { ... })`
 
 ```js
 core.authenticate('the token', function(err, credentials) {
@@ -78,7 +104,7 @@ core.authenticate('the token', function(err, credentials) {
 })
 ```
 
-# `core` events
+## `core` events
 
 ### `authentication initiated`
 
@@ -106,7 +132,7 @@ core.on('authenticated', function (credentials) {
 
 # Install
 
-Install with [npm](http://nodejs.org):
+Install with [npm](https://nodejs.org/en/download):
 
 	npm install just-login-core
 
