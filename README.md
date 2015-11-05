@@ -15,7 +15,8 @@ var core = JustLoginCore(db)
 router.get('/login', function (req, res) {
 	var query = url.parse(req.url, true).query
 
-	core.beginAuthentication(query.sessionId, query.email, sendResponse(res, '<p>U shud receiv email within few minutez...</p>'))
+	var successHtml = '<p>U shud receiv email within few minutez...</p>'
+	core.beginAuthentication(query.sessionId, query.email, sendResponse(res, successHtml))
 })
 
 router.get('/authenticate', function (req, res) {
