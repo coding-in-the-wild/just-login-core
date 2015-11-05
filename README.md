@@ -12,6 +12,8 @@ var JustLoginCore = require('just-login-core')
 var db = require('level')('./databases/core')
 var core = JustLoginCore(db)
 
+// From a form on the website:
+// http://example.com/login?sessionId=abcdefab-abcd-abcd-abcdefabcdef&email=joe@example.com
 router.get('/login', function (req, res) {
 	var query = url.parse(req.url, true).query
 
@@ -19,6 +21,8 @@ router.get('/login', function (req, res) {
 	core.beginAuthentication(query.sessionId, query.email, sendResponse(res, successHtml))
 })
 
+// From the link in the email:
+// http://example.com/authenticate?token=12345678-1234-1234-123456789012
 router.get('/authenticate', function (req, res) {
 	var query = url.parse(req.url, true).query
 
